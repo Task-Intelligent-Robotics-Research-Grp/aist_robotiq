@@ -3,7 +3,7 @@
 
 | ROS 2 Distribution | Humble                                                                                                                                                                      | Jazzy                                                                                                                                                                    |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Build Status       | [![humble-build](https://github.com/OpenHRC/OpenHRC/actions/workflows/humble-build.yaml/badge.svg)](https://github.com/OpenHRC/OpenHRC/actions/workflows/humble-build.yaml) | [![jazzy-build](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml/badge.svg)](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiqactions/workflows/jazzy-build.yaml) |
+| Build Status       | [![humble-build](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/humble-build.yaml/badge.svg)](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/workflows/humble-build.yaml) | [![jazzy-build](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml/badge.svg)](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml) |
 
 aist_robotiq
 ==================================================
