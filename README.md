@@ -1,9 +1,9 @@
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/Task-intellignet-Robotics-Research-Grp/aist_robotiq)
-![GitHub](https://img.shields.io/github/license/Task-intellignet-Robotics-Research-Grp/aist_robotiq)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Task-Intellignet-Robotics-Research-Grp/aist_robotiq)
+![GitHub](https://img.shields.io/github/license/Task-Intellignet-Robotics-Research-Grp/aist_robotiq)
 
 | ROS 2 Distribution | Humble                                                                                                                                                                      | Jazzy                                                                                                                                                                    |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Build Status       | [![humble-build](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/humble-build.yaml/badge.svg)](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/workflows/humble-build.yaml) | [![jazzy-build](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml/badge.svg)](https://github.com/Task-intellignet-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml) |
+| Build Status       | [![humble-build](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/humble-build.yaml/badge.svg)](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/workflows/humble-build.yaml) | [![jazzy-build](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml/badge.svg)](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml) |
 
 aist_robotiq
 ==================================================
