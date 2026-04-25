@@ -31,6 +31,12 @@ jobs:
         sudo apt update
         sudo apt upgrade -y
 
+    - name: Checkout ddynamic_reconfigure2
+      uses: actions/checkout@v4
+      with:
+        repository: Automation-Research-Team/ddynamic_reconfigure2
+        path: ddynamic_reconfigure2
+
     - name: Init workspace
       run: |
         mkdir ${WS}
