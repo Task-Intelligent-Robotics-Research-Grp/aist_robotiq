@@ -1,0 +1,9 @@
+name: humble-build
+on: push
+
+jobs:
+  humble-build:
+    uses: ./.github/workflows/build.yaml
+    with:
+      os: ubuntu-22.04
+      ros_distro: humble

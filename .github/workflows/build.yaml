@@ -1,0 +1,50 @@
+name: ROS build workflow
+
+# on: [push]
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      ros_distro:
+        required: true
+        type: string
+
+jobs:
+  ros_build:
+    runs-on: ${{ inputs.os }}
+    env:
+      WS: /home/runner/work/ros2_ws
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: dynamixel_workbench_controllers
+
+    - name: Setup ROS
+      uses: ros-tooling/setup-ros@v0.7
+      with:
+        required-ros-distributions: ${{ inputs.ros_distro }}
+
+    - name: apt update and upgrade
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    - name: Init workspace
+      run: |
+        mkdir ${WS}
+        ln -s ${GITHUB_WORKSPACE} ${WS}/src
+
+    - name: pre build
+      run: |
+        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
+        cd ${WS}/src
+        rosdep update
+        rosdep install -iy --from-paths ./
+
+    - name: build
+      run: |
+        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
+        cd ${WS}
+        colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
