@@ -31,6 +31,10 @@ jobs:
         sudo apt update
         sudo apt upgrade -y
 
+    - name: Install dependencies
+      run: |
+        sudo apt install nlohmann-json3-dev
+
     - name: Checkout ddynamic_reconfigure2
       uses: actions/checkout@v4
       with:
