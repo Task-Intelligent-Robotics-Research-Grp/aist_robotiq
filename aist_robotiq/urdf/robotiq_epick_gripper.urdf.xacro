@@ -81,10 +81,10 @@
 	<origin xyz="0 0 0" rpy="0 0 0"/>
       </joint>
 
-      <link name="${prefix}tip_link"/>
+      <link name="${prefix}tcp_link"/>
       <joint name="${prefix}tip_joint" type="fixed">
 	<parent link="${prefix}plunger_link"/>
-	<child  link="${prefix}tip_link"/>
+	<child  link="${prefix}tcp_link"/>
 	<origin xyz="${plunger_length} 0 0" rpy="0 ${-pi/2} 0"/>
       </joint>
 

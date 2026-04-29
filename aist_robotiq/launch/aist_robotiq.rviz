@@ -84,7 +84,7 @@ Visualization Manager:
           Value: true
         robotiq_3f_palm:
           Value: true
-        robotiq_3f_tip_link:
+        robotiq_3f_tcp_link:
           Value: true
         world:
           Value: true
@@ -112,7 +112,7 @@ Visualization Manager:
                   robotiq_3f_finger_middle_link_2:
                     robotiq_3f_finger_middle_link_3:
                       {}
-            robotiq_3f_tip_link:
+            robotiq_3f_tcp_link:
               {}
       Update Interval: 0
       Value: true
@@ -203,7 +203,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        robotiq_3f_tip_link:
+        robotiq_3f_tcp_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false

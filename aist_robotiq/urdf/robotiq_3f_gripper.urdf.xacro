@@ -3,7 +3,7 @@
        xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="robotiq_3f_gripper" params="prefix parent *origin">
 
-    <xacro:property name="tip_height"		value="0.204"/>
+    <xacro:property name="tcp_height"		value="0.204"/>
     <xacro:property name="distal_length"	value="0.0335"/>
     <xacro:property name="distal_offset"	value="0.0095"/>
 
@@ -192,9 +192,9 @@
     </link>
 
     <!-- Gripper tip -->
-    <xacro:set_frame name="${prefix}tip_link"
+    <xacro:set_frame name="${prefix}tcp_link"
 		     parent="${prefix}base_link">
-      <origin xyz="${tip_height} 0.0 0.0" rpy="0 ${radians(-90)} 0"/>
+      <origin xyz="${tcp_height} 0.0 0.0" rpy="0 ${radians(-90)} 0"/>
     </xacro:set_frame>
 
     <!-- middle finger -->
