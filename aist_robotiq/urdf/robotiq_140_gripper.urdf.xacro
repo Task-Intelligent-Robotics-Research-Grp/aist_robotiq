@@ -268,9 +268,9 @@
       <origin xyz="0 0 0" rpy="${pi} ${-pi/2} 0"/>
     </joint>
 
-    <joint name="${prefix}tcp_link_joint" type="fixed">
+    <joint name="${prefix}tip_link_joint" type="fixed">
       <parent link="${prefix}base_link"/>
-      <child link="${prefix}tcp_link"/>
+      <child link="${prefix}tip_link"/>
       <xacro:if value="${short_finger}">
 	<origin rpy="0.0 ${-pi/2} 0.0" xyz=".2053 0.0 0.0"/>
       </xacro:if>
@@ -278,7 +278,7 @@
 	<origin rpy="0.0 ${-pi/2} 0.0" xyz=".2328 0.0 0.0"/>
       </xacro:unless>
     </joint>
-    <link name="${prefix}tcp_link"/>
+    <link name="${prefix}tip_link"/>
 
     <xacro:robotiq_arg2f_base_link prefix="${prefix}"/>
     <xacro:finger_links prefix="${prefix}" fingerprefix="left"
