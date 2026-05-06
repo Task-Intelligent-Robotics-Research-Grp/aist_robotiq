@@ -10,7 +10,7 @@ from launch.substitutions              import (Command, FindExecutable,
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.actions                import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from aist_bringup.launch_common        import declare_launch_arguments
+from .launch                           import declare_launch_arguments
 
 launch_arguments = [
     {
@@ -25,7 +25,8 @@ launch_arguments = [
 def launch_setup(context):
     gripper_type = IfElseSubstitution(
                        EqualsSubstitution(
-                           LaunchConfiguration('gripper_name'), 'robotiq_epick'),
+                           LaunchConfiguration('gripper_name'),
+                           'robotiq_epick'),
                        'RobotiqSuction', 'RobotiqGripper')
     client_type = IfElseSubstitution(
                       EqualsSubstitution(gripper_type, 'RobotiqSuction'),

@@ -46,7 +46,7 @@ from aist_robotiq_msgs.srv    import SetVelocity
 from aist_robotiq_msgs.action import SetMode
 from aist_robotiq_msgs.action import SuctionCommand
 from aist_robotiq_msgs.msg    import SuctionCommand as SuctionCommandMsg
-from .simple_action_client    import SimpleActionClient
+from srv_and_action_wrappers.action_client import SimpleActionClient
 
 ######################################################################
 #  class GenericGripper                                              #
@@ -89,47 +89,47 @@ class GenericGripper(SimpleActionClient):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def grasp(self, timeout=Duration()):
+    def grasp(self, timeout_sec=None):
         """
         Grasp an object with the gripper.
         Desired finger position and applied effort are specified by parameters
         with 'grasp_position' and 'max_effort' keys, respectively,
-        @param timeout If positive, wait timeout duration until
-                       the gripper completing the movement.
-                       If zero, wait forever until the completion.
-                       If None, return immediately without waiting
-                       for completion.
+        @param timeout_sec If positive, wait timeout duration until
+                           the gripper completing the movement.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
         @return (status, result) of
                 (int, control_msgs/action/GripperCommand.Result) type
         """
         return self.move(self.parameters['grasp_position'],
-                         self.parameters['max_effort'], timeout)
+                         self.parameters['max_effort'], timeout_sec)
 
-    def release(self, timeout=Duration()):
+    def release(self, timeout_sec=None):
         """
         Release an object grasped by the gripper.
         Desired finger position is specified by a parameter
         with 'release_position' key. No effort is applied.
-        @param timeout If positive, wait timeout duration until
-                       the gripper completing the movement.
-                       If zero, wait forever until the completion.
-                       If None, return immediately without waiting
-                       for completion.
+        @param timeout_sec If positive, wait timeout duration until
+                           the gripper completing the movement.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
         @return (status, result) of
                 (int, control_msgs/action/GripperCommand.Result) type
         """
-        return self.move(self.parameters['release_position'], 0.0, timeout)
+        return self.move(self.parameters['release_position'], 0.0, timeout_sec)
 
-    def move(self, position, max_effort=0.0, timeout=Duration()):
+    def move(self, position, max_effort=0.0, timeout_sec=None):
         """
         Move fingers to the specified position with specified effort
         @param position   finger position
         @param max_effort maximum effort to be applied
-        @param timeout    If positive, wait timeout duration until
-                          the gripper completing the movement.
-                          If zero, wait forever until the completion.
-                          If None, return immediately without waiting
-                          for completion.
+        @param timeout_sec If positive, wait timeout duration until
+                           the gripper completing the movement.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
         @return (status, result) of
                 (int, control_msgs/action/GripperCommand.Result) type
         """
@@ -137,7 +137,7 @@ class GenericGripper(SimpleActionClient):
                                   command=GripperCommandMsg(
                                       position=position,
                                       max_effort=max_effort)),
-                              timeout=timeout)
+                              timeout_sec=timeout_sec)
 
 ######################################################################
 #  class RobotiqGripper                                              #
@@ -162,15 +162,15 @@ class RobotiqGripper(GenericGripper):
         self._individual_control_scissor = True
         self._set_mode = SimpleActionClient(node, SetMode, ns + '/set_mode',
                                             self._callback_group)
-        self.wait_for_server()
+        self._set_mode.wait_for_server()
 
         # self._logger.info('RobotiqGripper: client of %s started' % ns)
 
-    def move(self, gap, max_effort=0.0, timeout=Duration()):
-        return super().move(self._position(gap), max_effort, timeout)
+    def move(self, gap, max_effort=0.0, timeout_sec=None):
+        return super().move(self._position(gap), max_effort, timeout_sec)
 
-    def wait(self, timeout=Duration()):
-        status, result = super().wait(timeout)
+    def wait(self, timeout_sec=None):
+        status, result = super().wait(timeout_sec)
         if result is not None:
             result.position = self._gap(result.position)
         return status, result
@@ -201,7 +201,7 @@ class RobotiqGripper(GenericGripper):
                       mode=mode,
                       individual_control_fingers=individual_control_fingers,
                       individual_control_scissor=individual_control_scissor),
-                  timeout=Duration())
+                  timeout_sec=None)
         if status == GoalStatus.STATUS_SUCCEEDED and result.success:
             self._mode = mode
             self._individual_control_fingers = individual_control_fingers
@@ -236,7 +236,7 @@ class RobotiqSuction(SimpleActionClient):
     """
     def __init__(self, node, prefix='a_bot_gripper_', advanced_mode=True,
                  grasp_pressure=-78.0, detection_pressure=-10.0,
-                 release_pressure=0.0, grasp_timeout=0.0):
+                 release_pressure=0.0, grasp_timeout_sec=0.0):
         """
         Constructor
         @param prefix     string prefix for identifying a specific gripper
@@ -251,7 +251,7 @@ class RobotiqSuction(SimpleActionClient):
                             'grasp_pressure':     grasp_pressure,
                             'detection_pressure': detection_pressure,
                             'release_pressure':   release_pressure,
-                            'grasp_timeout':      grasp_timeout}
+                            'grasp_timeout':      grasp_timeout_sec}
 
     @property
     def callback_group(self):
@@ -274,49 +274,49 @@ class RobotiqSuction(SimpleActionClient):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def grasp(self, timeout=Duration()):
+    def grasp(self, timeout_sec=None):
         """
         Grasp an object with the gripper.
         Pressure applied and pressure threshold for object detection are
         specified by parameters 'grasp_pressure' and 'detection_pressure',
         respectively,
-        @param timeout If positive, wait timeout duration until
-                       the gripper completing the grasp action.
-                       If zero, wait forever until the completion.
-                       If None, return immediately without waiting
-                       for completion.
+        @param timeout_sec If positive, wait timeout_sec until
+                           the gripper completing the grasp action.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
         return self.suck(self.parameters['grasp_pressure'],
                          self.parameters['detection_pressure'],
-                         timeout)
+                         timeout_sec)
 
-    def release(self, timeout=Duration()):
+    def release(self, timeout_sec=None):
         """
         Release an object grasped by the gripper.
         Value of applied pressure is specified by a parameter
         'release_pressure' which should be non-negative.
-        @param timeout If positive, wait timeout duration until
-                       the gripper completing the release action.
-                       If zero, wait forever until the completion.
-                       If None, return immediately without waiting
-                       for completion.
+        @param timeout_sec If positive, wait timeout_sec until
+                           the gripper completing the grasp action.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
         return self.suck(self.parameters['release_pressure'],
                          self.parameters['detection_pressure'],
-                         timeout)
+                         timeout_sec)
 
-    def suck(self, max_pressure, min_pressure, timeout=Duration()):
+    def suck(self, max_pressure, min_pressure, timeout_sec=None):
         """
         Move fingers to the specified position with specified effort
         @param max_pressure maximum pressure value applied
         @param min_pressure minimum pressure value for object detection
-        @param timeout      If positive, wait timeout duration until
-                            the gripper completing the move action.
-                            If zero, wait forever until the completion.
-                            If None, return immediately without waiting
-                            for completion.
+        @param timeout_sec If positive, wait timeout_sec until
+                           the gripper completing the grasp action.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
         return self.send_goal(
@@ -325,7 +325,5 @@ class RobotiqSuction(SimpleActionClient):
                            advanced_mode=self.parameters['advanced_mode'],
                            max_pressure=max_pressure,
                            min_pressure=min_pressure,
-                           timeout=Duration(
-                               seconds=self.parameters['grasp_timeout']) \
-                           .to_msg())),
-                   timeout=timeout)
+                           timeout=self.parameters['grasp_timeout'])),
+                   timeout_sec=timeout_sec)

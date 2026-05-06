@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        path: dynamixel_workbench_controllers
+        path: aist_robotiq
 
     - name: Setup ROS
       uses: ros-tooling/setup-ros@v0.7
@@ -35,11 +35,21 @@ jobs:
       run: |
         sudo apt install nlohmann-json3-dev
 
-    - name: Checkout ddynamic_reconfigure2
-      uses: actions/checkout@v4
-      with:
-        repository: Automation-Research-Team/ddynamic_reconfigure2
-        path: ddynamic_reconfigure2
+    # - name: checkout ddynamic_reconfigure2
+    #   uses: actions/checkout@v4
+    #   with:
+    #     repository: Automation-Research-Team/ddynamic_reconfigure2
+    #     path: ddynamic_reconfigure2
+
+    # - name: Checkout srv_and_action_wrappers
+    #   uses: actions/checkout@v4
+    #   with:
+    #     repository: Task-Intelligent-Robotics-Research-Grp/srv_and_action_wrappers
+    #     path: srv_and_action_wrappers
+
+    - name: Checkout dependencies
+      run: |
+        vcs import . --input=aist_robotiq/dependencies.repos
 
     - name: Init workspace
       run: |

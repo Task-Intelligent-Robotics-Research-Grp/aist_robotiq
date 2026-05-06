@@ -1,0 +1,9 @@
+repositories:
+  ddynamic_reconfigure2:
+    type: git
+    url: git@github.com:Automation-Research-Team/ddynamic_reconfigure2
+    version: develop
+  srv_and_action_wrappers:
+    type: git
+    url: https://github.com/lbr-stack/srv_and_action_wrappers
+    version: develop
