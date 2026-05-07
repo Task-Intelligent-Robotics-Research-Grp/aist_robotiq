@@ -1,5 +1,6 @@
 from launch                            import LaunchDescription
-from launch.actions                    import (OpaqueFunction,
+from launch.actions                    import (DeclareLaunchArgument,
+                                               OpaqueFunction,
                                                IncludeLaunchDescription)
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
@@ -10,7 +11,6 @@ from launch.substitutions              import (Command, FindExecutable,
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.actions                import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from .launch                           import declare_launch_arguments
 
 launch_arguments = [
     {
@@ -21,6 +21,13 @@ launch_arguments = [
                         'robotiq_3f', 'robotiq_epick'],
     },
 ]
+
+def declare_launch_arguments(args):
+    return [DeclareLaunchArgument(arg['name'],
+                                  default_value=arg.get('default'),
+                                  description=arg.get('description'),
+                                  choices=arg.get('choices')) \
+            for arg in args]
 
 def launch_setup(context):
     gripper_type = IfElseSubstitution(

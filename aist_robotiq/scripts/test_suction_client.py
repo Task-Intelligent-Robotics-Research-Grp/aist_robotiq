@@ -57,7 +57,7 @@ class TestSuctionClient(Node):
                                                     0.0).value
         grasp_timeout      = self.declare_parameter('grasp_timeout', 0.0).value
 
-        self._gripper = RobotiqSuction(self, gripper_name + '_', advanced_mode,
+        self._gripper = RobotiqSuction(self, gripper_name, advanced_mode,
                                        grasp_pressure, detection_pressure,
                                        release_pressure, grasp_timeout)
         self.get_logger().info('started')

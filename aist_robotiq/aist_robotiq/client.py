@@ -37,7 +37,6 @@ Clients of action controller of control_msgs/GripperCommand action type.
 @author t.ueshiba@aist.go.jp
 """
 import rclpy, threading
-from rclpy.duration           import Duration
 from rclpy.parameter_client   import AsyncParameterClient
 from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
 from action_msgs.msg          import GoalStatus
@@ -47,54 +46,66 @@ from aist_robotiq_msgs.srv    import SetVelocity
 from aist_robotiq_msgs.action import SetMode
 from aist_robotiq_msgs.action import SuctionCommand
 from aist_robotiq_msgs.msg    import SuctionCommand as SuctionCommandMsg
-from srv_and_action_wrappers.action_client import SimpleActionClient
+from srv_and_action_wrappers.service_client import ServiceClient
+from srv_and_action_wrappers.action_client  import SimpleActionClient
 
 ######################################################################
-#  class GenericGripper                                              #
+#  class RobotiqGripper                                              #
 ######################################################################
-class GenericGripper(SimpleActionClient):
-    """
-    Gripper client of control_msg/GripperCommandAction type.
-    """
-    def __init__(self, node, action_ns,
-                 min_position=0.0, max_position=0.1, max_effort=5.0):
-        """
-        Constructor
-        @param action_ns    namespace of action server to be connected
-        @param min_position position when fully closed
-        @param max_position position when fully opened
-        @param max_effort   maximum effort applied when gripping objects
-        """
+class RobotiqGripper(SimpleActionClient):
+    def __init__(self, node, name='a_bot_gripper', max_effort=0.0):
+        self._name           = name
         self._callback_group = MutuallyExclusiveCallbackGroup()
-        super().__init__(node, GripperCommand, action_ns, self._callback_group)
-        self.wait_for_server()
 
-        self._parameters  = {'grasp_position':   min_position,
-                             'release_position': max_position,
-                             'max_effort':       max_effort}
+        controller_ns = name + '_controller'
+        super().__init__(node, GripperCommand, controller_ns + '/gripper_cmd',
+                         self._callback_group)
+
+        # Create service client for setting velocity.
+        self._set_velocity = ServiceClient(node, SetVelocity,
+                                           controller_ns + '/set_velocity',
+                                           self._callback_group)
+
+        # Get properties for computing gap values from the controller.
+        self._properties = {'max_effort': max_effort}
+        self._get_controller_parameters(node, controller_ns)
+
+        # Create action client for switching mode.
+        self._mode = SetMode.Goal.BASIC
+        self._individual_control_fingers = True
+        self._individual_control_scissor = True
+        self._set_mode = SimpleActionClient(node, SetMode,
+                                            controller_ns + '/set_mode',
+                                            self._callback_group)
 
     @property
-    def parameters(self):
-        """
-        Return a dictionary of grippaer parameters
-        @return a dictionary of grippaer parameters with string keys
-        """
-        return self._parameters
+    def name(self):
+        return self._name
 
-    @parameters.setter
-    def parameters(self, parameters):
+    @property
+    def base_link(self):
+        return self._name + '_base_link'
+
+    @property
+    def tip_link(self):
+        return self._name + '_tip_link'
+
+    @property
+    def properties(self):
         """
-        Set a dictionary of grippaer parameters
-        @param parameters a dictionary of grippaer parameters with string keys
+        Return a dictionary of gripper properties
+        @return a dictionary of gripper properties with string keys
         """
-        for key, value in parameters.items():
-            self._parameters[key] = value
+        return self._properties
+
+    def pregrasp(self):
+        self.release(0.0)
 
     def grasp(self, timeout_sec=None):
         """
         Grasp an object with the gripper.
-        Desired finger position and applied effort are specified by parameters
-        with 'grasp_position' and 'max_effort' keys, respectively,
+        Desired finger position and applied effort are specified by properties
+        with 'grasp_position' and 'max_effort' keys, respectively.
         @param timeout_sec If positive, wait timeout duration until
                            the gripper completing the movement.
                            If non-positive, return immediately without waiting
@@ -103,8 +114,11 @@ class GenericGripper(SimpleActionClient):
         @return (status, result) of
                 (int, control_msgs/action/GripperCommand.Result) type
         """
-        return self.move(self.parameters['grasp_position'],
-                         self.parameters['max_effort'], timeout_sec)
+        return self.move(self.properties['grasp_position'],
+                         self.properties['max_effort'], timeout_sec)
+
+    def postgrasp(self):
+        self.grasp(0.0)
 
     def release(self, timeout_sec=None):
         """
@@ -119,56 +133,14 @@ class GenericGripper(SimpleActionClient):
         @return (status, result) of
                 (int, control_msgs/action/GripperCommand.Result) type
         """
-        return self.move(self.parameters['release_position'], 0.0, timeout_sec)
-
-    def move(self, position, max_effort=0.0, timeout_sec=None):
-        """
-        Move fingers to the specified position with specified effort
-        @param position   finger position
-        @param max_effort maximum effort to be applied
-        @param timeout_sec If positive, wait timeout duration until
-                           the gripper completing the movement.
-                           If non-positive, return immediately without waiting
-                           for completion.
-                           If None, wait forever until the completion.
-        @return (status, result) of
-                (int, control_msgs/action/GripperCommand.Result) type
-        """
-        return self.send_goal(GripperCommand.Goal(
-                                  command=GripperCommandMsg(
-                                      position=position,
-                                      max_effort=max_effort)),
-                              timeout_sec=timeout_sec)
-
-######################################################################
-#  class RobotiqGripper                                              #
-######################################################################
-class RobotiqGripper(GenericGripper):
-    def __init__(self, node, prefix='a_bot_gripper_', max_effort=0.0):
-        ns = prefix + 'controller'
-        super().__init__(node, ns + '/gripper_cmd', max_effort=max_effort)
-
-        # Create service client for setting velocity.
-        self._set_velocity \
-            = node.create_client(SetVelocity, ns + '/set_velocity',
-                                 callback_group=self._callback_group)
-
-        # Get parameters for computing gap values from the controller.
-        self._param_client = AsyncParameterClient(node, ns)
-        self.get_controller_parameters()
-
-        # Create action client for switching mode.
-        self._mode = SetMode.Goal.BASIC
-        self._individual_control_fingers = True
-        self._individual_control_scissor = True
-        self._set_mode = SimpleActionClient(node, SetMode, ns + '/set_mode',
-                                            self._callback_group)
-        self._set_mode.wait_for_server()
-
-        # self._logger.info('RobotiqGripper: client of %s started' % ns)
+        return self.move(self.properties['release_position'], 0.0, timeout_sec)
 
     def move(self, gap, max_effort=0.0, timeout_sec=None):
-        return super().move(self._position(gap), max_effort, timeout_sec)
+        return self.send_goal(GripperCommand.Goal(
+                                  command=GripperCommandMsg(
+                                      position=self._position(gap),
+                                      max_effort=max_effort)),
+                              timeout_sec=timeout_sec)
 
     def wait(self, timeout_sec=None):
         status, result = super().wait(timeout_sec)
@@ -176,23 +148,8 @@ class RobotiqGripper(GenericGripper):
             result.position = self._gap(result.position)
         return status, result
 
-    def get_controller_parameters(self):
-        def _get_parameters_cb(future):
-            values = future.result().values
-
-            self._min_gap      = values[0].double_array_value
-            self._max_gap      = values[1].double_array_value
-            self._min_position = values[2].double_array_value
-            self._max_position = values[3].double_array_value
-            self.parameters = {'grasp_position':   self._min_gap[0],
-                               'release_position': self._max_gap[0]}
-
-        self._param_client.get_parameters(['min_gap', 'max_gap',
-                                           'min_position', 'max_position'],
-                                          _get_parameters_cb)
-
     def set_velocity(self, velocity):
-        self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
+        return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
 
     def set_mode(self, mode, individual_control_fingers=False,
                  individual_control_scissor=False):
@@ -210,6 +167,21 @@ class RobotiqGripper(GenericGripper):
             return True
         else:
             return False
+
+    def _get_controller_parameters(self, node, controller_ns):
+        def _get_parameters_cb(future):
+            values = future.result().values
+            self._min_gap      = values[0].double_array_value
+            self._max_gap      = values[1].double_array_value
+            self._min_position = values[2].double_array_value
+            self._max_position = values[3].double_array_value
+            self._properties['grasp_position']   = self._min_gap[0]
+            self._properties['release_position'] = self._max_gap[0]
+
+        AsyncParameterClient(node, controller_ns) \
+            .get_parameters(['min_gap', 'max_gap',
+                             'min_position', 'max_position'],
+                            _get_parameters_cb)
 
     def _position(self, gap):
         idx = self._idx()
@@ -233,53 +205,58 @@ class RobotiqGripper(GenericGripper):
 ######################################################################
 class RobotiqSuction(SimpleActionClient):
     """
-    Gripper client of aist_robotiq/SuctionCommandAction type.
+    Gripper client of aist_robotiq/action/SuctionCommand type.
     """
-    def __init__(self, node, prefix='a_bot_gripper_', advanced_mode=True,
+    def __init__(self, node, name='a_bot_gripper', advanced_mode=True,
                  grasp_pressure=-78.0, detection_pressure=-10.0,
                  release_pressure=0.0, grasp_timeout_sec=0.0):
         """
         Constructor
-        @param prefix     string prefix for identifying a specific gripper
+        @param node     node
+        @param name     gripper name
         """
-        ns = prefix + 'controller'
+        self._name           = name
         self._callback_group = MutuallyExclusiveCallbackGroup()
-        super().__init__(node, SuctionCommand, ns + '/gripper_cmd',
-                         self._callback_group)
-        self.wait_for_server()
 
-        self._parameters = {'advanced_mode':      advanced_mode,
+        super().__init__(node, SuctionCommand,
+                         name + '_controller/gripper_cmd',
+                         self._callback_group)
+
+        self._properties = {'advanced_mode':      advanced_mode,
                             'grasp_pressure':     grasp_pressure,
                             'detection_pressure': detection_pressure,
                             'release_pressure':   release_pressure,
                             'grasp_timeout':      grasp_timeout_sec}
 
     @property
-    def callback_group(self):
-        return self._callback_group
+    def name(self):
+        return self._name
 
     @property
-    def parameters(self):
-        """
-        Return a dictionary of grippaer parameters
-        @return a dictionary of grippaer parameters with string keys
-        """
-        return self._parameters
+    def base_link(self):
+        return self._name + '_base_link'
 
-    @parameters.setter
-    def parameters(self, parameters):
+    @property
+    def tip_link(self):
+        return self._name + '_tip_link'
+
+    @property
+    def properties(self):
         """
-        Set a dictionary of grippaer parameters
-        @param parameters a dictionary of grippaer parameters with string keys
+        Return a dictionary of gripper properties
+        @return a dictionary of gripper properties with string keys
         """
-        for key, value in parameters.items():
-            self._parameters[key] = value
+        return self._properties
+
+    def pregrasp(self):
+        self.suck(self.properties['grasp_pressure'],
+                  self.properties['detection_pressure'], 0.0, 0.0)
 
     def grasp(self, timeout_sec=None):
         """
         Grasp an object with the gripper.
         Pressure applied and pressure threshold for object detection are
-        specified by parameters 'grasp_pressure' and 'detection_pressure',
+        specified by properties 'grasp_pressure' and 'detection_pressure',
         respectively,
         @param timeout_sec If positive, wait timeout_sec until
                            the gripper completing the grasp action.
@@ -288,9 +265,13 @@ class RobotiqSuction(SimpleActionClient):
                            If None, wait forever until the completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
-        return self.suck(self.parameters['grasp_pressure'],
-                         self.parameters['detection_pressure'],
+        return self.suck(self.properties['grasp_pressure'],
+                         self.properties['detection_pressure'],
+                         self.properties['grasp_timeout'],
                          timeout_sec)
+
+    def postgrasp(self):
+        self.pregrasp()
 
     def release(self, timeout_sec=None):
         """
@@ -304,11 +285,13 @@ class RobotiqSuction(SimpleActionClient):
                            If None, wait forever until the completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
-        return self.suck(self.parameters['release_pressure'],
-                         self.parameters['detection_pressure'],
+        return self.suck(self.properties['release_pressure'],
+                         self.properties['detection_pressure'],
+                         self.properties['grasp_timeout'],
                          timeout_sec)
 
-    def suck(self, max_pressure, min_pressure, timeout_sec=None):
+    def suck(self, max_pressure, min_pressure, grasp_timeout_sec,
+             timeout_sec=None):
         """
         Move fingers to the specified position with specified effort
         @param max_pressure maximum pressure value applied
@@ -323,8 +306,8 @@ class RobotiqSuction(SimpleActionClient):
         return self.send_goal(
                    SuctionCommand.Goal(
                        command=SuctionCommandMsg(
-                           advanced_mode=self.parameters['advanced_mode'],
+                           advanced_mode=self.properties['advanced_mode'],
                            max_pressure=max_pressure,
                            min_pressure=min_pressure,
-                           timeout=self.parameters['grasp_timeout'])),
+                           timeout=grasp_timeout_sec)),
                    timeout_sec=timeout_sec)

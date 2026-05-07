@@ -47,7 +47,7 @@ class TestGripperClient(Node):
 
         gripper_name = self.declare_parameter('gripper_name',
                                               'a_bot_gripper').value
-        self._gripper = RobotiqGripper(self, gripper_name + '_')
+        self._gripper = RobotiqGripper(self, gripper_name)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
