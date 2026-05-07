@@ -54,10 +54,10 @@ from srv_and_action_wrappers.action_client  import SimpleActionClient
 ######################################################################
 class RobotiqGripper(SimpleActionClient):
     def __init__(self, node, name='a_bot_gripper', max_effort=0.0):
-        self._name           = name
-        self._callback_group = MutuallyExclusiveCallbackGroup()
-
+        self._name    = name
         controller_ns = name + '_controller'
+
+        self._callback_group = MutuallyExclusiveCallbackGroup()
         super().__init__(node, GripperCommand, controller_ns + '/gripper_cmd',
                          self._callback_group)
 
@@ -217,7 +217,6 @@ class RobotiqSuction(SimpleActionClient):
         """
         self._name           = name
         self._callback_group = MutuallyExclusiveCallbackGroup()
-
         super().__init__(node, SuctionCommand,
                          name + '_controller/gripper_cmd',
                          self._callback_group)
