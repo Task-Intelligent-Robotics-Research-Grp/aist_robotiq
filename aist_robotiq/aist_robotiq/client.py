@@ -290,7 +290,7 @@ class RobotiqSuction(SimpleActionClient):
                          self.properties['grasp_timeout'],
                          timeout_sec)
 
-    def suck(self, max_pressure, min_pressure, grasp_timeout_sec,
+    def suck(self, max_pressure, min_pressure=None, grasp_timeout_sec=None,
              timeout_sec=None):
         """
         Move fingers to the specified position with specified effort
@@ -303,6 +303,10 @@ class RobotiqSuction(SimpleActionClient):
                            If None, wait forever until the completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
+        if not min_pressure:
+            min_pressure = self.properties['detection_pressure']
+        if not grasp_timeout_sec:
+            grasp_timeout_sec = self.properties['grasp_timeout']
         return self.send_goal(
                    SuctionCommand.Goal(
                        command=SuctionCommandMsg(

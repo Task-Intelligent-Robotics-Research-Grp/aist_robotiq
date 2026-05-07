@@ -35,7 +35,6 @@
 #
 import rclpy, threading
 from rclpy.node          import Node
-from rclpy.duration      import Duration
 from aist_robotiq.client import RobotiqSuction
 
 #########################################################################
@@ -60,11 +59,8 @@ class TestSuctionClient(Node):
         self._gripper = RobotiqSuction(self, gripper_name, advanced_mode,
                                        grasp_pressure, detection_pressure,
                                        release_pressure, grasp_timeout)
-        self.get_logger().info('started')
 
-        cli_thread = threading.Thread(target=self.interactive)
-        cli_thread.daemon = True
-        cli_thread.start()
+        threading.Thread(target=self.interactive, daemon=True).start()
 
     def interactive(self):
         def is_float(s):
@@ -79,22 +75,22 @@ class TestSuctionClient(Node):
             print('==== Available commands ====')
             print('  g:         Grasp')
             print('  r:         Release')
-            print('  <numeric>: Set gripper a specified pressure value')
-            print('  c:         Cancel motion')
+            print('  <numeric>: Set specified pressure value to the gripper')
+            print('  c:         Cancel sucking')
             print('  w:         Wait until goal completed')
             print('  q:         Quit\n')
 
             key = input('>> ')
             if key == 'g':
-                self._gripper.grasp(timeout=None)
+                self._gripper.grasp()
             elif key == 'r':
-                self._gripper.release(timeout=None)
+                self._gripper.release()
             elif is_float(key):
-                self._gripper.suck(float(key), timeout=None)
+                self._gripper.suck(float(key))
             elif key == 'c':
                 self._gripper.cancel()
             elif key == 'w':
-                status, result = self._gripper.wait(timeout=Duration(seconds=2))
+                status, result = self._gripper.wait(2.0)
                 print(result)
             elif key=='q':
                 break

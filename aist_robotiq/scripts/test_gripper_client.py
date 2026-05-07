@@ -35,7 +35,6 @@
 #
 import rclpy, sys, threading
 from rclpy.node          import Node
-from rclpy.duration      import Duration
 from aist_robotiq.client import RobotiqGripper
 
 #########################################################################
@@ -48,11 +47,8 @@ class TestGripperClient(Node):
         gripper_name = self.declare_parameter('gripper_name',
                                               'a_bot_gripper').value
         self._gripper = RobotiqGripper(self, gripper_name)
-        self.get_logger().info('started')
 
-        cli_thread = threading.Thread(target=self.interactive)
-        cli_thread.daemon = True
-        cli_thread.start()
+        threading.Thread(target=self.interactive, daemon=True).start()
 
     def interactive(self):
         def is_float(s):
@@ -67,7 +63,7 @@ class TestGripperClient(Node):
             print('==== Available commands ====')
             print('  g:         Grasp')
             print('  r:         Release')
-            print('  <numeric>: Open gripper with a specified gap value')
+            print('  <numeric>: Open gripper with the specified gap value')
             print('  c:         Cancel motion')
             print('  w:         Wait until goal completed')
             print('  m:         Switch mode')
@@ -75,15 +71,15 @@ class TestGripperClient(Node):
 
             key = input('>> ')
             if key == 'g':
-                self._gripper.grasp(timeout=None)
+                self._gripper.grasp()
             elif key == 'r':
-                self._gripper.release(timeout=None)
+                self._gripper.release()
             elif is_float(key):
-                self._gripper.move(float(key), timeout=None)
+                self._gripper.move(float(key), 0.0)
             elif key == 'c':
                 self._gripper.cancel()
             elif key == 'w':
-                status, result = self._gripper.wait(timeout=Duration(seconds=10))
+                status, result = self._gripper.wait()
                 print(result)
             elif key == 'v':
                 velocity = float(input('  velocity: '))
