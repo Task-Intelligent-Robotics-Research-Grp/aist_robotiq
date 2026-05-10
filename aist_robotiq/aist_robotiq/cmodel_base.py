@@ -35,9 +35,9 @@ import time
 from rclpy.node            import Node
 from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 
-#########################################################################
-#  class CModelBase                                                     #
-#########################################################################
+#************************************************************************
+#  class CModelBase                                                     *
+#************************************************************************
 class CModelBase(Node):
     def __init__(self, name):
         super().__init__(name)

@@ -39,9 +39,9 @@ from pymodbus.client          import ModbusTcpClient, ModbusSerialClient
 from pymodbus.payload         import BinaryPayloadBuilder, BinaryPayloadDecoder
 from pymodbus.constants       import Endian
 
-#########################################################################
-#  class CModelModbusBase                                               #
-#########################################################################
+#************************************************************************
+#  class CModelModbusBase                                               *
+#************************************************************************
 class CModelModbusBase(CModelBase):
     def __init__(self, name):
         super().__init__(name)
@@ -127,9 +127,9 @@ class CModelModbusBase(CModelBase):
             status.g_cus = decoder.decode_8bit_uint()   # Byte 14
         return status
 
-#########################################################################
-#  class CModelModbusTCP                                                #
-#########################################################################
+#************************************************************************
+#  class CModelModbusTCP                                                *
+#************************************************************************
 class CModelModbusTCP(CModelModbusBase):
     def __init__(self, name):
         super().__init__(name)
@@ -149,9 +149,9 @@ class CModelModbusTCP(CModelModbusBase):
         with self._lock:
             return self._client.read_input_registers(0, nregs, slave_id)
 
-#########################################################################
-#  class CModelModbusRTU                                                #
-#########################################################################
+#************************************************************************
+#  class CModelModbusRTU                                                *
+#************************************************************************
 class CModelModbusRTU(CModelModbusBase):
     def __init__(self, name):
         super().__init__(name)

@@ -39,19 +39,18 @@ import time, socket, threading
 from aist_robotiq.cmodel_base import CModelBase
 from aist_robotiq_msgs.msg    import CModelStatus
 
-#########################################################################
-#  class CModelURCap                                                    #
-#########################################################################
+#************************************************************************
+#  class CModelURCap                                                    *
+#************************************************************************
 class CModelURCap(CModelBase):
-    """
-    Communicates with the gripper directly via socket with string commands,
+    """ Communicates with the gripper directly via socket with string commands,
     leveraging string names for variables.
+
     Uses port 63352 which is opened by the Robotiq Gripper URCap
     and receives ASCII commands.
     """
     def __init__(self, name):
-        """
-        Constructor
+        """ Constructor
         """
         super().__init__(name)
         ip = self.declare_parameter('ip', '10.66.171.40').value
@@ -64,8 +63,8 @@ class CModelURCap(CModelBase):
         self.get_logger().info('started[ip=%s]' % ip)
 
     def connect(self, hostname, port=63352, socket_timeout=2.0):
-        """
-        Connects to a gripper at the given address.
+        """ Connects to a gripper at the given address.
+
         :param hostname: Hostname or ip.
         :param port: Port.
         :param socket_timeout: Timeout for blocking socket operations.
@@ -77,8 +76,7 @@ class CModelURCap(CModelBase):
         return s
 
     def disconnect(self):
-        """
-        Closes the connection with the gripper
+        """ Closes the connection with the gripper
         """
         self._socket.close()
 
@@ -147,7 +145,8 @@ class CModelURCap(CModelBase):
         return status
 
     def _set_vars(self, var_dict):
-        """
+        """ Set values to variables.
+
         Sends the appropriate command via socket to set the value
         of n variables, and waits for its 'ack' response.
 
@@ -169,7 +168,8 @@ class CModelURCap(CModelBase):
         return self._is_ack(data)
 
     def _set_var(self, variable, value):
-        """
+        """ Set value to variable.
+
         Sends the appropriate command via socket to set the value
         of a variable, and waits for its 'ack' response.
 
@@ -182,7 +182,8 @@ class CModelURCap(CModelBase):
         return self._set_vars({variable:value})
 
     def _get_var(self, variable):
-        """
+        """ Get value of a variable.
+
         Sends the appropriate command to retrieve the value
         of a variable from the gripper, blocking until the response
         is received or the socket times out.
