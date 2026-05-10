@@ -5,5 +5,5 @@ repositories:
     version: develop
   srv_and_action_wrappers:
     type: git
-    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/srv_and_action_wrappers
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/task_wrappers
     version: develop
