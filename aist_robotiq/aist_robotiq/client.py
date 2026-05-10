@@ -181,17 +181,27 @@ class RobotiqGripper(SimpleActionClient):
         return status, result
 
     def set_velocity(self, velocity):
-        return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
+        """ Set finger velocity value to the gripper.
+        """
+        return self._set_vel_clnt.call(SetVelocity.Request(velocity=velocity))
 
     def set_mode(self, mode, individual_control_fingers=False,
-                 individual_control_scissor=False):
+                 individual_control_scissor=False, timeout_sec=None):
+        """ Set operation mode of the gripper.
+
+        This fuction is effective only for Robotiq-3D grippers.
+
+        :param mode:
+        :param individual_control_fingers:
+        :param individual_control_scissor:
+        """
         status, result \
-            = self._set_mode.send_goal(
+            = self._set_mode_clnt.send_goal(
                   SetMode.Goal(
                       mode=mode,
                       individual_control_fingers=individual_control_fingers,
                       individual_control_scissor=individual_control_scissor),
-                  timeout_sec=None)
+                  timeout_sec=timeout_sec)
         if status == GoalStatus.STATUS_SUCCEEDED and result.success:
             self._mode = mode
             self._individual_control_fingers = individual_control_fingers
