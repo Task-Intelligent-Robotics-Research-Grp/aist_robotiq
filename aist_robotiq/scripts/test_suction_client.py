@@ -54,11 +54,14 @@ class TestSuctionClient(Node):
                                                     -10.0).value
         release_pressure   = self.declare_parameter('release_pressure',
                                                     0.0).value
-        grasp_timeout      = self.declare_parameter('grasp_timeout', 0.0).value
+        grasp_timeout_sec  = self.declare_parameter('grasp_timeout', 0.0).value
 
-        self._gripper = RobotiqSuction(self, gripper_name, advanced_mode,
-                                       grasp_pressure, detection_pressure,
-                                       release_pressure, grasp_timeout)
+        self._gripper = RobotiqSuction(self, gripper_name,
+                                       advanced_mode=advanced_mode,
+                                       grasp_pressure=grasp_pressure,
+                                       detection_pressure=detection_pressure,
+                                       release_pressure=release_pressure,
+                                       grasp_timeout_sec=grasp_timeout_sec)
 
         threading.Thread(target=self.interactive, daemon=True).start()
 
@@ -86,11 +89,11 @@ class TestSuctionClient(Node):
             elif key == 'r':
                 self._gripper.release()
             elif is_float(key):
-                self._gripper.suck(float(key))
+                self._gripper.suck(float(key), timeout_sec=0.0)
             elif key == 'c':
-                self._gripper.cancel()
+                self._gripper.cancel_goal()
             elif key == 'w':
-                status, result = self._gripper.wait(2.0)
+                status, result = self._gripper.wait(timeout_sec=2.0)
                 print(result)
             elif key=='q':
                 break

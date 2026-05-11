@@ -75,9 +75,9 @@ class TestGripperClient(Node):
             elif key == 'r':
                 self._gripper.release()
             elif is_float(key):
-                self._gripper.move(float(key), 0.0)
+                self._gripper.move(float(key), max_effort=0.0)
             elif key == 'c':
-                self._gripper.cancel()
+                self._gripper.cancel_goal()
             elif key == 'w':
                 status, result = self._gripper.wait()
                 print(result)

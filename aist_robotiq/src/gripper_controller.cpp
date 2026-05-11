@@ -434,6 +434,7 @@ class GripperController : public rclcpp::Node
 
   // GripperCommand action stuffs
     array4i                             _goal_pos;
+    const callback_group_p              _gripper_command_cbg;
     const action_p<gripper_command_t>   _gripper_command_srv;
     goal_handle_p<gripper_command_t>    _gripper_command_goal_handle;
 
@@ -509,6 +510,8 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                    this, std::placeholders::_1))),
 
      _goal_pos{0},
+     _gripper_command_cbg(create_callback_group(
+                              rclcpp::CallbackGroupType::MutuallyExclusive)),
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
                               this, "~/gripper_cmd",
                               std::bind(
@@ -523,7 +526,9 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                               std::bind(
                                   &GripperController::
                                   gripper_command_handle_accepted_cb,
-                                  this, std::placeholders::_1))),
+                                  this, std::placeholders::_1),
+                              rcl_action_server_get_default_options(),
+                              _gripper_command_cbg)),
      _gripper_command_goal_handle(nullptr),
 
      _mode(set_mode_t::Goal::BASIC),
