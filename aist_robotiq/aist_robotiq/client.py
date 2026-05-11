@@ -32,7 +32,6 @@
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
 import threading
-from rclpy.parameter_client       import AsyncParameterClient
 from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
 from action_msgs.msg              import GoalStatus
 from control_msgs.action          import GripperCommand
@@ -43,6 +42,10 @@ from aist_robotiq_msgs.action     import SuctionCommand
 from aist_robotiq_msgs.msg        import SuctionCommand as SuctionCommandMsg
 from task_wrappers.service_client import ServiceClient
 from task_wrappers.action_client  import SimpleActionClient
+from ddynamic_reconfigure2.client import ParameterClient
+
+from rclpy.node                   import Node
+from typing                       import Optional
 
 #************************************************************************
 #  class RobotiqGripper                                                 *
@@ -50,7 +53,8 @@ from task_wrappers.action_client  import SimpleActionClient
 class RobotiqGripper(SimpleActionClient):
     """ Action client of the controller for Robotiq grippers.
     """
-    def __init__(self, node, name='a_bot_gripper', *, max_effort=0.0):
+    def __init__(self, node: Node, name: str='a_bot_gripper',
+                 *, max_effort: float=0.0):
         """ Create a RobotiqGripper client.
 
         :param node: The ROS node to add the suction tool client to.
@@ -119,7 +123,7 @@ class RobotiqGripper(SimpleActionClient):
     def pregrasp(self):
         self.release(timeout_sec=0.0)
 
-    def grasp(self, *, timeout_sec=None):
+    def grasp(self, *, timeout_sec: Optional[float]=None):
         """ Grasp an object with the gripper.
 
         Desired finger position and applied effort are specified by properties
@@ -140,7 +144,7 @@ class RobotiqGripper(SimpleActionClient):
     def postgrasp(self):
         self.grasp(timeout_sec=0.0)
 
-    def release(self, *, timeout_sec=None):
+    def release(self, *, timeout_sec: Optional[float]=None):
         """ Release an object grasped by the gripper.
 
         Desired finger position is specified by a parameter
@@ -157,7 +161,8 @@ class RobotiqGripper(SimpleActionClient):
         return self.move(self.properties['release_position'],
                          max_effort=0.0, timeout_sec=timeout_sec)
 
-    def move(self, gap, *, max_effort=0.0, timeout_sec=None):
+    def move(self, gap: float, *,
+             max_effort: float=0.0, timeout_sec: Optional[float]=None):
         """ Move gripper to the desired position.
 
         :param gap: Desired gap between the fingers.
@@ -176,7 +181,7 @@ class RobotiqGripper(SimpleActionClient):
                                       max_effort=max_effort)),
                               timeout_sec=timeout_sec)
 
-    def wait(self, *, timeout_sec=None):
+    def wait(self, *, timeout_sec: Optional[float]=None):
         """ Wait for the result of gripper command or cancel request.
 
         Wait until the result of the gripper command or a cancel request
@@ -198,13 +203,16 @@ class RobotiqGripper(SimpleActionClient):
             result.position = self._gap(result.position)
         return status, result
 
-    def set_velocity(self, velocity):
+    def set_velocity(self, velocity: float):
         """ Set finger velocity value to the gripper.
         """
         return self._set_vel_clnt.call(SetVelocity.Request(velocity=velocity))
 
-    def set_mode(self, mode, *, individual_control_fingers=False,
-                 individual_control_scissor=False, timeout_sec=None):
+    def set_mode(self, mode: str,
+                 *,
+                 individual_control_fingers: bool=False,
+                 individual_control_scissor: bool=False,
+                 timeout_sec: Optional[float]=None):
         """ Set operation mode of the gripper.
 
         This fuction is effective only for Robotiq-3D grippers.
@@ -229,37 +237,22 @@ class RobotiqGripper(SimpleActionClient):
             return False
 
     def _get_controller_parameters(self):
-        values      = None
-        values_cond = threading.Condition()
+        timeout_sec = 10.0
+        values = ParameterClient(self._node, self._name + '_controller') \
+                .get_parameters_sync(['min_gap', 'max_gap',
+                                      'min_position', 'max_position'],
+                                     timeout_sec=timeout_sec)
+        self._min_gap      = values[0].double_array_value
+        self._max_gap      = values[1].double_array_value
+        self._min_position = values[2].double_array_value
+        self._max_position = values[3].double_array_value
 
-        def _get_parameters_cb(future):
-            nonlocal values
-            values = future.result().values
-            with values_cond:
-                values_cond.notify_all()
-
-        AsyncParameterClient(self._node, self._name + '_controller') \
-            .get_parameters(['min_gap', 'max_gap',
-                             'min_position', 'max_position'],
-                            _get_parameters_cb)
-        with values_cond:
-            get_parameters_timeout_sec = 10.0
-            if not values_cond.wait_for(lambda: values is not None,
-                                        get_parameters_timeout_sec):
-                self._logger.error('timeout[%fsec] has expired'
-                                   % get_parameters_timeout_sec)
-                raise TimeoutError()
-            self._min_gap      = values[0].double_array_value
-            self._max_gap      = values[1].double_array_value
-            self._min_position = values[2].double_array_value
-            self._max_position = values[3].double_array_value
-
-    def _position(self, gap):
+    def _position(self, gap: float):
         idx = self._idx()
         return (gap - self._min_gap[idx]) * self._position_per_gap(idx) \
              + self._min_position[idx]
 
-    def _gap(self, position):
+    def _gap(self, position: float):
         idx = self._idx()
         return (position - self._min_position[idx]) \
              / self._position_per_gap(idx) + self._min_gap[idx]
@@ -277,9 +270,12 @@ class RobotiqGripper(SimpleActionClient):
 class RobotiqSuction(SimpleActionClient):
     """ Action client of controller for Robotiq EPick grippers.
     """
-    def __init__(self, node, name='a_bot_gripper', *, advanced_mode=True,
-                 grasp_pressure=-78.0, detection_pressure=-10.0,
-                 release_pressure=0.0, grasp_timeout_sec=0.0):
+    def __init__(self, node: Node, name: str='a_bot_gripper', *,
+                 advanced_mode:      bool=True,
+                 grasp_pressure:     float=-78.0,
+                 detection_pressure: float=-10.0,
+                 release_pressure:   float=0.0,
+                 grasp_timeout_sec:  float=0.0):
         """ Create a RobotiqSuction client.
 
         :param node: The ROS node to add the suction tool client to.
@@ -326,7 +322,7 @@ class RobotiqSuction(SimpleActionClient):
                   grasp_timeout_sec=0.0,
                   timeout_sec=0.0)
 
-    def grasp(self, *, timeout_sec=None):
+    def grasp(self, *, timeout_sec: Optional[float]=None):
         """ Grasp an object with the gripper.
 
         Pressure applied and pressure threshold for object detection are
@@ -351,7 +347,7 @@ class RobotiqSuction(SimpleActionClient):
     def postgrasp(self):
         self.pregrasp()
 
-    def release(self, *, timeout_sec=None):
+    def release(self, *, timeout_sec: Optional[float]=None):
         """ Release an object grasped by the gripper.
 
         Value of applied pressure is specified by a parameter
@@ -372,8 +368,10 @@ class RobotiqSuction(SimpleActionClient):
                          grasp_timeout_sec=self.properties['grasp_timeout'],
                          timeout_sec=timeout_sec)
 
-    def suck(self, max_pressure, *,
-             min_pressure=None, grasp_timeout_sec=None, timeout_sec=None):
+    def suck(self, max_pressure: float, *,
+             min_pressure:      Optional[float]=None,
+             grasp_timeout_sec: Optional[float]=None,
+             timeout_sec:       Optional[float]=None):
         """ Generate pressure.
 
         :param max_pressure: Maximum pressure value applied
