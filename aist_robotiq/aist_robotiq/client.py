@@ -117,7 +117,7 @@ class RobotiqGripper(SimpleActionClient):
         return self._properties
 
     def pregrasp(self):
-        self.release(0.0)
+        self.release(timeout_sec=0.0)
 
     def grasp(self, *, timeout_sec=None):
         """ Grasp an object with the gripper.
@@ -138,7 +138,7 @@ class RobotiqGripper(SimpleActionClient):
                          timeout_sec=timeout_sec)
 
     def postgrasp(self):
-        self.grasp(0.0)
+        self.grasp(timeout_sec=0.0)
 
     def release(self, *, timeout_sec=None):
         """ Release an object grasped by the gripper.
