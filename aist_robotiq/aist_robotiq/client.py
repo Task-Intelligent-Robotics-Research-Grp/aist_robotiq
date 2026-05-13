@@ -206,7 +206,7 @@ class RobotiqGripper(SimpleActionClient):
     def set_velocity(self, velocity: float):
         """ Set finger velocity value to the gripper.
         """
-        return self._set_vel_clnt.call(SetVelocity.Request(velocity=velocity))
+        return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
 
     def set_mode(self, mode: str,
                  *,
