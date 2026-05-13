@@ -484,13 +484,14 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
      _joint_state(),
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
 
-     _cmodel_command_pub(create_publisher<cmodel_command_t>("/command", 1)),
+     _cmodel_command_pub(create_publisher<cmodel_command_t>("/cmodel_command",
+                                                            1)),
 
      _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
                             rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
-                            "/status", 1,
+                            "/cmodel_status", 1,
                             std::bind(&GripperController::cmodel_status_cb,
                                       this, std::placeholders::_1),
                             create_subscription_options(_cmodel_status_cbg))),

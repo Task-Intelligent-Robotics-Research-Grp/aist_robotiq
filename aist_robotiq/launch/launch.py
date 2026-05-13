@@ -81,10 +81,12 @@ def launch_setup(context):
                                LaunchConfiguration('param_file'),
                            ],
                            remappings=[
-                               ('/status',  [LaunchConfiguration('driver_ns'),
-                                             '/status']),
-                               ('/command', [LaunchConfiguration('driver_ns'),
-                                             '/command'])
+                               ('/cmodel_status',
+                                [LaunchConfiguration('driver_ns'),
+                                 '/cmodel_status']),
+                               ('/cmodel_command',
+                                [LaunchConfiguration('driver_ns'),
+                                 '/cmodel_command'])
                            ],
                            extra_arguments=[
                                {'use_intra_process_comms': True}
