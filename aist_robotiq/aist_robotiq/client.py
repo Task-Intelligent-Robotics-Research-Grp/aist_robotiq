@@ -242,10 +242,10 @@ class RobotiqGripper(SimpleActionClient):
                 .get_parameters_sync(['min_gap', 'max_gap',
                                       'min_position', 'max_position'],
                                      timeout_sec=timeout_sec)
-        self._min_gap      = values[0].double_array_value
-        self._max_gap      = values[1].double_array_value
-        self._min_position = values[2].double_array_value
-        self._max_position = values[3].double_array_value
+        self._min_gap      = values[0]
+        self._max_gap      = values[1]
+        self._min_position = values[2]
+        self._max_position = values[3]
 
     def _position(self, gap: float):
         idx = self._idx()
