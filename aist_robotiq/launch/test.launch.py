@@ -67,7 +67,7 @@ def launch_setup(context):
              package='aist_robotiq',
              executable=['test_', client_type, '_client.py'],
              parameters=[{'gripper_name': LaunchConfiguration('gripper_name')}],
-             prefix=['xterm -fn 7x14 -e'],
+             prefix=['gnome-terminal --geometry=80x60 --'],
              output='screen'),
         Node(name='rviz', package='rviz2', executable='rviz2',
              output='screen',
