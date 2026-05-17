@@ -101,6 +101,12 @@ class RobotiqGripper(SimpleActionClient):
         return self._name
 
     @property
+    def type(self):
+        if not self._min_gap:
+            self._get_controller_parameters()
+        return 'two_finger' if len(self._min_gap) == 1 else 'three_finger':
+
+    @property
     def base_link(self):
         return self._name + '_base_link'
 
@@ -299,6 +305,10 @@ class RobotiqSuction(SimpleActionClient):
     @property
     def name(self):
         return self._name
+
+    @property
+    def type(self):
+        return 'suction'
 
     @property
     def base_link(self):
