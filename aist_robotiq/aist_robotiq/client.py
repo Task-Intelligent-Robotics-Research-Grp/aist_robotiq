@@ -104,7 +104,7 @@ class RobotiqGripper(SimpleActionClient):
     def type(self):
         if not self._min_gap:
             self._get_controller_parameters()
-        return 'two_finger' if len(self._min_gap) == 1 else 'three_finger':
+        return 'two_finger' if len(self._min_gap) == 1 else 'three_finger'
 
     @property
     def base_link(self):
