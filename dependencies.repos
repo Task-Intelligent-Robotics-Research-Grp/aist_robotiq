@@ -3,7 +3,7 @@ repositories:
     type: git
     url: https://github.com/Automation-Research-Team/ddynamic_reconfigure2
     version: develop
-  srv_and_action_wrappers:
+  task_wrappers:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/task_wrappers
     version: develop
