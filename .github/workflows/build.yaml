@@ -69,6 +69,7 @@ jobs:
         doxygen
 
     - name: Build documents of aist_robotiq_msgs
+      run: |
         cd docs
         rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
         mv docs_output/aist_robotiq_msgs html
