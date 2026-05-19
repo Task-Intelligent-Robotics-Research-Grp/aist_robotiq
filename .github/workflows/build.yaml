@@ -51,20 +51,20 @@ jobs:
         mkdir ${WS}
         ln -s ${GITHUB_WORKSPACE} ${WS}/src
 
-    - name: pre build
+    - name: Pre build
       run: |
         source /opt/ros/jazzy/setup.bash
         cd ${WS}/src
         rosdep update
         rosdep install -iy --from-paths ./
 
-    - name: build
+    - name: Build
       run: |
         source /opt/ros/jazzy/setup.bash
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
-    - name: build docs
+    - name: Build docs
       run: |
         mkdir docs
         cd docs
@@ -78,7 +78,7 @@ jobs:
 
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v2
+      uses: actions/deploy-pages@v5
 
 permissions:
   contents: write
