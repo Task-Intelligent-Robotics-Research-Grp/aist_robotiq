@@ -1,19 +1,13 @@
 name: ROS build workflow
 
-# on: [push]
 on:
-  workflow_call:
-    inputs:
-      os:
-        required: true
-        type: string
-      ros_distro:
-        required: true
-        type: string
+  push:
+    branches:
+    - develop
 
 jobs:
   ros_build:
-    runs-on: ${{ inputs.os }}
+    runs-on: ubuntu-24.04
     env:
       WS: /home/runner/work/ros2_ws
     steps:
@@ -24,7 +18,7 @@ jobs:
     - name: Setup ROS
       uses: ros-tooling/setup-ros@v0.7
       with:
-        required-ros-distributions: ${{ inputs.ros_distro }}
+        required-ros-distributions: jazzy
 
     - name: apt update and upgrade
       run: |
@@ -34,6 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install nlohmann-json3-dev
+        sudo apt install python3-rosdoc2
 
     # - name: checkout ddynamic_reconfigure2
     #   uses: actions/checkout@v4
@@ -58,13 +53,35 @@ jobs:
 
     - name: pre build
       run: |
-        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
+        source /opt/ros/jazzy/setup.bash
         cd ${WS}/src
         rosdep update
         rosdep install -iy --from-paths ./
 
     - name: build
       run: |
-        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
+        source /opt/ros/jazzy/setup.bash
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+    - name: build docs
+      run: |
+        cd ${WS}
+        mkdir docs
+        cd docs
+        rosdoc2 build --package-path ../src/aist_robotiq/aist_robotiq
+        rosdoc2 build --package-path ../src/aist_robotiq/aist_robotiq_msgs
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ./docs/aist_robotiq/docs_output
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
