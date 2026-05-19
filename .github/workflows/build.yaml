@@ -78,7 +78,7 @@ jobs:
     - name: Upload artifact of aist_robotiq
       uses: actions/upload-pages-artifact@v4
       with:
-        path: ./docs/html
+        path: ./aist_robotiq/docs/html
 
     # - name: Upload artifact of aist_robotiq_msgs
     #   uses: actions/upload-pages-artifact@v4
