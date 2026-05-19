@@ -72,7 +72,7 @@ jobs:
     - name: Build documents of aist_robotiq_msgs
       run: |
         cd ${WS}/src/aist_robotiq/docs
-        rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
+        rosdoc2 build --package-path ../aist_robotiq_msgs
         mv docs_output/aist_robotiq_msgs html
 
     - name: Upload artifact of aist_robotiq
