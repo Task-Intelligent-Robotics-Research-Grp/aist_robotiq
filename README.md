@@ -47,5 +47,7 @@ ros2 launch aist_robotiq test.launch.py gripper_name:=robotiq_epick [driver_type
 where
 - **driver_type**: Type of the driver. Should be chosen accorrding to how the gripper hardware is electrically connected to the robot or PC. Possible choices are `rtu`, `tcp` and `urcap`.
 
-## Further reading
-Please consult `README`s in each package for usage.
+## More info.
+Please consult the following pages.
+- [Documentation of aist_robotiq](https://task-intelligent-robotics-research-grp.github.io/aist_robotiq/index.html): Usage of controllers and drivers for `Robotiq` grippers. API of the controller clients.
+- [Documentation of aist_robotiq_msgs](https://task-intelligent-robotics-research-grp.github.io/aist_robotiq/aist_robotiq_msgs/index.html): Definitions of ROS message/srvice/action used by controllers and drivers included in `aist_robotiq`.
