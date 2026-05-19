@@ -76,10 +76,10 @@ jobs:
       with:
         path: ./docs/docs_output/aist_robotiq
 
-    - name: Upload artifact of aist_robotiq_msgs
-      uses: actions/upload-pages-artifact@v4
-      with:
-        path: ./docs/docs_output/aist_robotiq_msgs
+    # - name: Upload artifact of aist_robotiq_msgs
+    #   uses: actions/upload-pages-artifact@v4
+    #   with:
+    #     path: ./docs/docs_output/aist_robotiq_msgs
 
     - name: Deploy to GitHub Pages
       id: deployment
