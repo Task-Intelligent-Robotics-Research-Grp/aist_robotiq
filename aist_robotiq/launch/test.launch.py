@@ -14,7 +14,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 launch_arguments = [
     {
-        'name':        'gripper_name',
+        'name':        'gripper_type',
         'default':     'robotiq_85',
         'description': 'name of the gripper',
         'choices':     ['robotiq_85', 'robotiq_140', 'robotiq_hande',
@@ -32,7 +32,7 @@ def declare_launch_arguments(args):
 def launch_setup(context):
     gripper_type = IfElseSubstitution(
                        EqualsSubstitution(
-                           LaunchConfiguration('gripper_name'),
+                           LaunchConfiguration('gripper_type'),
                            'robotiq_epick'),
                        'RobotiqSuction', 'RobotiqGripper')
     client_type = IfElseSubstitution(
@@ -43,7 +43,7 @@ def launch_setup(context):
                                 FindExecutable(name='xacro'), ' ',
                                 PathJoinSubstitution([
                                     FindPackageShare('aist_robotiq'), 'urdf',
-                                    [LaunchConfiguration('gripper_name'),
+                                    [LaunchConfiguration('gripper_type'),
                                      '_gripper.urdf']
                                 ])
                             ]),
@@ -58,15 +58,15 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(), 'launch.py']),
             launch_arguments=[
-                ('gripper_names',  LaunchConfiguration('gripper_name')),
+                ('gripper_names',  LaunchConfiguration('gripper_type')),
                 ('gripper_types',  gripper_type),
-                ('driver_ns',      [LaunchConfiguration('gripper_name'),
+                ('driver_ns',      [LaunchConfiguration('gripper_type'),
                                     '_driver']),
             ]),
         Node(name=['test_', client_type, '_client'],
              package='aist_robotiq',
              executable=['test_', client_type, '_client.py'],
-             parameters=[{'gripper_name': LaunchConfiguration('gripper_name')}],
+             parameters=[{'gripper_name': LaunchConfiguration('gripper_type')}],
              prefix=['gnome-terminal --geometry=80x60 --'],
              output='screen'),
         Node(name='rviz', package='rviz2', executable='rviz2',

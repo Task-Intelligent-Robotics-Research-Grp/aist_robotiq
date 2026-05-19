@@ -64,17 +64,19 @@ jobs:
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
-    - name: Build docs
+    - name: Build documents of aist_robotiq
       run: |
-        mkdir docs
+        doxygen
+
+    - name: Build documents of aist_robotiq_msgs
         cd docs
-        rosdoc2 build --package-path ../aist_robotiq/aist_robotiq
         rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
+        mv docs_output/aist_robotiq_msgs html
 
     - name: Upload artifact of aist_robotiq
       uses: actions/upload-pages-artifact@v4
       with:
-        path: ./docs/docs_output/aist_robotiq
+        path: ./docs/html
 
     # - name: Upload artifact of aist_robotiq_msgs
     #   uses: actions/upload-pages-artifact@v4
