@@ -23,10 +23,10 @@ jobs:
     - name: Build HTML
       run: |
         mkdir docs
-	cd docs
+        cd docs
         rosdoc2 build --package-path ../aist_robotiq/aist_robotiq
         rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
-	cd ..
+        cd ..
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v2
       with:
