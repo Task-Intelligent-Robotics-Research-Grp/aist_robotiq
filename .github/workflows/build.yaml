@@ -66,11 +66,10 @@ jobs:
 
     - name: build docs
       run: |
-        cd ${WS}
         mkdir docs
         cd docs
-        rosdoc2 build --package-path ../src/aist_robotiq/aist_robotiq
-        rosdoc2 build --package-path ../src/aist_robotiq/aist_robotiq_msgs
+        rosdoc2 build --package-path ../aist_robotiq/aist_robotiq
+        rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v4
