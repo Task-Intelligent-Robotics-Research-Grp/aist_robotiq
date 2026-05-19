@@ -1,0 +1,41 @@
+name: Generate docs and deploy GitHub Pages action
+
+on:
+  push:
+    branches:
+    - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        path: aist_robotiq
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        sudo apt install python3-rosdoc2
+    - name: Build HTML
+      run: |
+        mkdir docs
+	cd docs
+        rosdoc2 build --package-path ../aist_robotiq/aist_robotiq
+        rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
+	cd ..
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+  	path: ./docs/aist_robotiq/docs_output
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
