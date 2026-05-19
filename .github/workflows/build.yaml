@@ -66,11 +66,12 @@ jobs:
 
     - name: Build documents of aist_robotiq
       run: |
+        cd ${WS}/src/aist_robotiq
         doxygen
 
     - name: Build documents of aist_robotiq_msgs
       run: |
-        cd docs
+        cd ${WS}/src/aist_robotiq/docs
         rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
         mv docs_output/aist_robotiq_msgs html
 
