@@ -28,7 +28,7 @@ jobs:
         rosdoc2 build --package-path ../aist_robotiq/aist_robotiq_msgs
         cd ..
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v4
       with:
         path: ./docs/aist_robotiq/docs_output
     - name: Deploy to GitHub Pages
