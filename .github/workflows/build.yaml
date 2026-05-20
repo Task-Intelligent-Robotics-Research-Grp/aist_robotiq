@@ -67,7 +67,6 @@ jobs:
     - name: Install doxyfilter_python
       run: |
         sudo install ./doxyfilter_python/doxyfilter_python.py /usr/local/bin
-        doxygen
 
     - name: Build documents of aist_robotiq
       run: |
