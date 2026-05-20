@@ -37,9 +37,9 @@ import rclpy, threading
 from rclpy.node          import Node
 from aist_robotiq.client import RobotiqSuction
 
-#########################################################################
-#  class TestSuctionClient                                              #
-#########################################################################
+#************************************************************************
+#  class TestSuctionClient                                              *
+#************************************************************************
 class TestSuctionClient(Node):
     def __init__(self, name):
         super().__init__(name)
@@ -103,9 +103,14 @@ class TestSuctionClient(Node):
         self.destroy_node()
         rclpy.shutdown()
 
-
-if __name__ == '__main__':
-    rclpy.init()
+#************************************************************************
+#  Entry point                                                          *
+#************************************************************************
+def main():
+    rclpy.init(args=sys.argv)
 
     test = TestSuctionClient('test_suction_client')
     rclpy.spin(test)
+
+if __name__ == '__main__':
+    main()

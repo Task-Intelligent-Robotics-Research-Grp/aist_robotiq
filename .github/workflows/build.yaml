@@ -1,13 +1,18 @@
 name: ROS build workflow
 
 on:
-  push:
-    branches:
-    - develop
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      ros_distro:
+        required: true
+        type: string
 
 jobs:
   ros_build:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.os }}
     env:
       WS: /home/runner/work/ros2_ws
     steps:
@@ -18,7 +23,7 @@ jobs:
     - name: Setup ROS
       uses: ros-tooling/setup-ros@v0.7
       with:
-        required-ros-distributions: jazzy
+        required-ros-distributions: ${{ inputs.ros_distro }}
 
     - name: apt update and upgrade
       run: |
@@ -29,18 +34,6 @@ jobs:
       run: |
         sudo apt install nlohmann-json3-dev
         sudo apt install python3-rosdoc2
-
-    # - name: checkout ddynamic_reconfigure2
-    #   uses: actions/checkout@v4
-    #   with:
-    #     repository: Automation-Research-Team/ddynamic_reconfigure2
-    #     path: ddynamic_reconfigure2
-
-    # - name: Checkout srv_and_action_wrappers
-    #   uses: actions/checkout@v4
-    #   with:
-    #     repository: Task-Intelligent-Robotics-Research-Grp/srv_and_action_wrappers
-    #     path: srv_and_action_wrappers
 
     - name: Checkout dependencies
       run: |
@@ -53,14 +46,14 @@ jobs:
 
     - name: Pre build
       run: |
-        source /opt/ros/jazzy/setup.bash
+        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
         cd ${WS}/src
         rosdep update
         rosdep install -iy --from-paths ./
 
     - name: Build
       run: |
-        source /opt/ros/jazzy/setup.bash
+        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 

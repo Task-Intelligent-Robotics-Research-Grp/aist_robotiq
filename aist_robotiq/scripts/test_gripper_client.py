@@ -37,9 +37,9 @@ import rclpy, sys, threading
 from rclpy.node          import Node
 from aist_robotiq.client import RobotiqGripper
 
-#########################################################################
-#  class TestGripperClient                                              #
-#########################################################################
+#************************************************************************
+#  class TestGripperClient                                              *
+#************************************************************************
 class TestGripperClient(Node):
     def __init__(self, name):
         super().__init__(name)
@@ -98,6 +98,9 @@ class TestGripperClient(Node):
         self.destroy_node()
         rclpy.shutdown()
 
+#************************************************************************
+#  Entry point                                                          *
+#************************************************************************
 def main():
     rclpy.init(args=sys.argv)
 
