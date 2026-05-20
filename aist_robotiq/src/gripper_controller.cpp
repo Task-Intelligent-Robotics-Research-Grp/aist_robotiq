@@ -745,8 +745,9 @@ GripperController::gripper_command_goal_cb(const goal_uuid_t&,
     }
 
     RCLCPP_INFO_STREAM(get_logger(),
-                       "GripperCommand goal ACCEPTED[goal position: "
-                       << goal->command.position << ']');
+                       "GripperCommand goal ACCEPTED[position="
+                       << goal->command.position << ", max_effort="
+                       << goal->command.max_effort << ']');
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 

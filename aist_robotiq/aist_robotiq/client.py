@@ -31,7 +31,7 @@
 #
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import threading
+import threading, copy
 from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
 from action_msgs.msg              import GoalStatus
 from control_msgs.action          import GripperCommand
@@ -172,7 +172,7 @@ class RobotiqGripper(SimpleActionClient):
         """ Move gripper to the desired position.
 
         :param gap: Desired gap between the fingers.
-         param max_effort: Desired maximum effort to be applied.
+        :param max_effort: Desired maximum effort to be applied.
         :param timeout_sec:
           - Seconds to wait until the gripper complets movement, if positive.
           - Wait forever, if ``None``.
@@ -206,6 +206,7 @@ class RobotiqGripper(SimpleActionClient):
         status, result = super().wait(timeout_sec=timeout_sec)
         if result is not None:
              # Convert joint angle to gap.
+            result = copy.deepcopy(result)
             result.position = self._gap(result.position)
         return status, result
 
@@ -213,6 +214,13 @@ class RobotiqGripper(SimpleActionClient):
         """ Set finger velocity value to the gripper.
         """
         return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
+
+    def set_max_effort(self, max_effort: float):
+        """ Set maximum effort to be applied when grasping.
+
+        :param max_effort: Maximum effort to be applied when grasping.
+        """
+        self._parameters['max_effort'] = max_effort
 
     def set_mode(self, mode: str,
                  *,

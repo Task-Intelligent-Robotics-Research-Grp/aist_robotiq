@@ -15,11 +15,15 @@ FULL_PATH_NAMES        = NO
 
 EXTRACT_ALL            = YES
 
-EXTRACT_PRIVATE        = NO
-
 EXTRACT_STATIC         = YES
 
 EXTRACT_ANON_NSPACES   = NO
+
+EXTRACT_PRIVATE        = NO
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = protected=private
 
 RECURSIVE              = YES
 

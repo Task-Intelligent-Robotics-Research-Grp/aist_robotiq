@@ -67,6 +67,7 @@ class TestGripperClient(Node):
             print('  c:         Cancel motion')
             print('  w:         Wait until goal completed')
             print('  m:         Switch mode')
+            print('  e:         Set maximum effort to be applied')
             print('  q:         Quit\n')
 
             key = input('>> ')
@@ -89,7 +90,11 @@ class TestGripperClient(Node):
             elif key == 'm':
                 mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
                 success = self._gripper.set_mode(mode)
-                print('%s to set mode' % ('succeeded' if success else 'failed'))
+                print('%s to set mode'
+                      % ('succeeded' if success else 'failed'))
+            elif key == 'e':
+                max_effort = float(input('  maximum effort: '))
+                self._gripper.set_max_effort(max_effort)
             elif key=='q':
                 break
             else:
