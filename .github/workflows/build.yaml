@@ -80,7 +80,6 @@ jobs:
       uses: actions/upload-pages-artifact@v4
       with:
         path: ./aist_robotiq/docs/html
-	github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Deploy to GitHub Pages
       id: deployment
