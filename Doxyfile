@@ -13,7 +13,7 @@ Input                  = ./README.md -->
 
 FULL_PATH_NAMES        = NO
 
-EXTRACT_ALL            = YES
+EXTRACT_ALL            = NO
 
 EXTRACT_STATIC         = YES
 
