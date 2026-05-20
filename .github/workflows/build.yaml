@@ -12,10 +12,6 @@ on:
 
 jobs:
   ros_build:
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
     runs-on: ${{ inputs.os }}
     env:
       WS: /home/runner/work/ros2_ws
