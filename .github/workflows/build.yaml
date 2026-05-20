@@ -12,6 +12,10 @@ on:
 
 jobs:
   ros_build:
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     runs-on: ${{ inputs.os }}
     env:
       WS: /home/runner/work/ros2_ws
@@ -76,12 +80,8 @@ jobs:
       uses: actions/upload-pages-artifact@v4
       with:
         path: ./aist_robotiq/docs/html
+	github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v5
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
