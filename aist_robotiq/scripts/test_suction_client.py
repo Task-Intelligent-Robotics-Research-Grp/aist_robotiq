@@ -33,7 +33,7 @@
 #
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import rclpy, threading
+import rclpy, sys, threading
 from rclpy.node          import Node
 from aist_robotiq.client import RobotiqSuction
 
@@ -81,6 +81,7 @@ class TestSuctionClient(Node):
             print('  <numeric>: Set specified pressure value to the gripper')
             print('  c:         Cancel sucking')
             print('  w:         Wait until goal completed')
+            print('  t:         Set grasp timeout')
             print('  q:         Quit\n')
 
             key = input('>> ')
@@ -95,6 +96,9 @@ class TestSuctionClient(Node):
             elif key == 'w':
                 status, result = self._gripper.wait(timeout_sec=2.0)
                 print(result)
+            elif key == 't':
+                grasp_timeout = float(input('  grasp timeout: '))
+                self._gripper.parameters['grasp_timeout'] = grasp_timeout
             elif key=='q':
                 break
             else:

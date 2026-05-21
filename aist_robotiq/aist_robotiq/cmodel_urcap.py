@@ -94,6 +94,7 @@ class CModelURCap(CModelBase):
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
         vars = [('SID', command.r_sid),
+#                ('ACT', command.r_act),
                 ('MOD', command.r_mod),                 # Byte 0
                 ('GTO', command.r_gto),
                 ('ATR', command.r_atr),
@@ -116,6 +117,7 @@ class CModelURCap(CModelBase):
         self._set_vars(dict(vars))
 
     def get_status(self, slave_id):
+        self.get_logger().info('### get_status(): slave_id=%d' % slave_id)
         status = CModelStatus()
         # Assign values to their respective variables
         status.g_sid = self._get_var('SID')
@@ -156,9 +158,9 @@ class CModelURCap(CModelBase):
                          indicating the set may not have been effective.
         """
         # construct unique command
-        cmd = "SET"
+        cmd = 'SET'
         for variable, value in var_dict.items():
-            cmd += " " + variable + " " + str(value)
+            cmd += ' ' + variable + ' ' + str(value)
         cmd += '\n'  # new line is required for the command to finish
         # atomic commands send/rcv
         with self._lock:
@@ -201,7 +203,8 @@ class CModelURCap(CModelBase):
         # of the variable name, and x the value
         # note some special variables (like FLT) may send 2 bytes,
         # instead of an integer. We assume integer here
-        var_name, value_str = data.decode('UTF-8').split()
+        var_name, value_str = data.decode('UTF-8').split(maxsplit=1)
+        self.get_logger().info('### %s=%s' % (var_name, value_str))
         if var_name != variable:
             raise ValueError("Unexpected response " + str(data)
                              + " does not match '" + variable + "'")

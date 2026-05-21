@@ -135,3 +135,21 @@ robotiq_epick_driver:
     dev:            /dev/ttyUSB0  # Used for rtu drivers
     slave_ids:      [9]           # list of slave IDs of Modbus devices
     arg3f_grippers: [False]
+
+robotiq_epick_controller:
+  ros__parameters:
+    slave_id: 9
+
+#############################################################
+#  Dual gripper configuration with Robotiq 2f-85 and EPick  #
+#############################################################
+dual_gripper_driver:
+  ros__parameters:
+    ip:             10.66.171.41  # for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # for rtu drivers
+    slave_ids:      [9, 2]        # list of slave IDs of Modbus devices
+    arg3f_grippers: [False, False]
+
+right_epick_controller:
+  ros__parameters:
+    slave_id: 2

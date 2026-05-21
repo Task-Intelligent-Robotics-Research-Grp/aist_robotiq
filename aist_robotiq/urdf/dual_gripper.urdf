@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot name="dual_gripper" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <link name="world"/>
+
+  <!-- dual bracket -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_dual_bracket.urdf.xacro"/>
+  <xacro:robotiq_dual_bracket prefix="dual_bracket_" parent="world">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
+  </xacro:robotiq_dual_bracket>
+
+  <!-- left and right couplings -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="left_coupling_"
+				parent="dual_bracket_left_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+  <xacro:robotiq_arg2f_coupling prefix="right_coupling_"
+				parent="dual_bracket_right_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
+  <!-- 2F-85 gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_85_gripper.urdf.xacro" />
+  <xacro:robotiq_85_gripper prefix="robotiq_85_"
+			    parent="left_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_85_gripper>
+
+  <!-- EPick gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_epick_gripper.urdf.xacro"/>
+  <xacro:robotiq_epick_gripper prefix="right_epick_"
+			       parent="right_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_epick_gripper>
+
+</robot>

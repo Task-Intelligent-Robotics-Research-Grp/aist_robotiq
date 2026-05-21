@@ -408,6 +408,9 @@ class RobotiqSuction(SimpleActionClient):
             min_pressure = self.parameters['detection_pressure']
         if not grasp_timeout_sec:
             grasp_timeout_sec = self.parameters['grasp_timeout']
+        if grasp_timeout_sec > 0.0 and \
+           (timeout_sec is None or timeout_sec > grasp_timeout_sec):
+           timeout_sec = grasp_timeout_sec
         return self.send_goal(
                    SuctionCommand.Goal(
                        command=SuctionCommandMsg(

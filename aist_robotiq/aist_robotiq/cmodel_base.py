@@ -61,15 +61,6 @@ class CModelBase(Node):
             time.sleep(0.1)
             self.put_command(CModelCommand(r_sid=slave_id, r_act=1, r_gto=1))
             time.sleep(0.1)
-            # for n in range(10):
-            #     if self.get_status(slave_id).g_sta == 0x03:
-            #         self.get_logger().info('activated device[slave_id=%d]'
-            #                                % slave_id)
-            #         break
-            #     elif n == 9:
-            #         self.get_logger().error('failed to activate device[slave_id=%d]'
-            #                                % slave_id)
-            #     time.sleep(0.5)
         self.get_logger().info('all devices activated')
 
 

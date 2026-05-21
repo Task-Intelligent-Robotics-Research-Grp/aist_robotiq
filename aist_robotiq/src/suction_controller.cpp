@@ -138,7 +138,7 @@ class SuctionController : public rclcpp::Node
                                                      0, 255);
                     const auto  min_prs = std::clamp(int(min_pressure + 100.0),
                                                      0, 100);
-                    const auto  tmo     = std::clamp(int(timeout), 0, 255);
+                    const auto  tmo     = std::clamp(int(10*timeout), 0, 255);
                     send_raw_suction_command(advanced_mode,
                                              max_prs, min_prs, tmo);
                     return {max_prs, min_prs};
@@ -290,6 +290,7 @@ SuctionController::goal_cb(const goal_uuid_t&, goal_cp<suction_command_t> goal)
                        << std::boolalpha << goal->command.advanced_mode
                        << ", max_pressure=" << goal->command.max_pressure
                        << ", min_pressure=" << goal->command.min_pressure
+                       << ", timeout="      << goal->command.timeout
                        << ']');
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }

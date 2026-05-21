@@ -94,7 +94,7 @@ class TestGripperClient(Node):
                       % ('succeeded' if success else 'failed'))
             elif key == 'e':
                 max_effort = float(input('  maximum effort: '))
-                self._gripper.set_max_effort(max_effort)
+                self._gripper.parameters['max_effort'] = max_effort
             elif key=='q':
                 break
             else:
