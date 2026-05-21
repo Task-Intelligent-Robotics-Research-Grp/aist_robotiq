@@ -3,13 +3,11 @@
 # Set the project name
 PROJECT_NAME           = aist_robotiq
 
-INPUT_FILTER           = /usr/local/bin/doxyfilter_python.py
+FILTER_PATTERNS        = *.py=/usr/local/bin/doxyfilter_python.py
 
-# Set the output directory for the generated documentation
 OUTPUT_DIRECTORY       = docs
-<!-- USE_MDFILE_AS_MAINPAGE = ./README.md
-Input                  = ./README.md -->
 
+USE_MDFILE_AS_MAINPAGE = ./README.md
 
 FULL_PATH_NAMES        = NO
 
@@ -20,10 +18,8 @@ EXTRACT_STATIC         = YES
 EXTRACT_ANON_NSPACES   = NO
 
 EXTRACT_PRIVATE        = NO
-ENABLE_PREPROCESSING   = YES
-MACRO_EXPANSION        = YES
-EXPAND_ONLY_PREDEF     = YES
-PREDEFINED             = protected=private
+
+HIDE_UNDOC_MEMBERS     = YES
 
 RECURSIVE              = YES
 

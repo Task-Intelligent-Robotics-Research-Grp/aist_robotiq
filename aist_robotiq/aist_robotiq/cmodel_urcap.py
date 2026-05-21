@@ -118,9 +118,13 @@ class CModelURCap(CModelBase):
 
     def get_status(self, slave_id):
         self.get_logger().info('### get_status(): slave_id=%d' % slave_id)
+
+        # Specify device whose status to be read.
+        self._set_var('SID', slave_id)
+
+        # Assign status values to their respective variables
         status = CModelStatus()
-        # Assign values to their respective variables
-        status.g_sid = self._get_var('SID')
+        status.g_sid = slave_id
         status.g_act = self._get_var('ACT')             # Byte 0
         status.g_mod = self._get_var('MOD')
         status.g_gto = self._get_var('GTO')
@@ -195,7 +199,7 @@ class CModelURCap(CModelBase):
         """
         # atomic commands send/rcv
         with self._lock:
-            cmd = "GET " + variable + "\n"
+            cmd = 'GET ' + variable + '\n'
             self._socket.sendall(cmd.encode('UTF-8'))
             data = self._socket.recv(1024)
 
@@ -206,8 +210,8 @@ class CModelURCap(CModelBase):
         var_name, value_str = data.decode('UTF-8').split(maxsplit=1)
         self.get_logger().info('### %s=%s' % (var_name, value_str))
         if var_name != variable:
-            raise ValueError("Unexpected response " + str(data)
-                             + " does not match '" + variable + "'")
+            raise ValueError('Unexpected response ' + str(data)
+                             + ' does not match "' + variable + '"')
         try:
             return int(value_str)
         except ValueError:
@@ -215,4 +219,7 @@ class CModelURCap(CModelBase):
 
     @staticmethod
     def _is_ack(data):
-        return data == b'ack'
+        if data != b'ack':
+            self.get_logger().error('no acknowledge from device: %s' % data)
+            return False
+        return True

@@ -25,15 +25,14 @@ jobs:
       with:
         required-ros-distributions: ${{ inputs.ros_distro }}
 
-    - name: apt update and upgrade
+    - name: Apt update and upgrade
       run: |
         sudo apt update
         sudo apt upgrade -y
 
     - name: Install dependencies
       run: |
-        sudo apt install nlohmann-json3-dev
-        sudo apt install python3-rosdoc2
+        sudo apt install nlohmann-json3-dev python3-rosdoc2
 
     - name: Checkout dependencies
       run: |
