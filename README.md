@@ -1,5 +1,5 @@
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/Task-Intellignet-Robotics-Research-Grp/aist_robotiq)
-![GitHub](https://img.shields.io/github/license/Task-Intellignet-Robotics-Research-Grp/aist_robotiq)
+![GitHub Release](https://img.shields.io/github/v/release/Task-Intelligent-Robotics-Research-Grp/aist_robotiq)
+![GitHub License](https://img.shields.io/github/license/Task-Intelligent-Robotics-Research-Grp/aist_robotiq)
 
 | ROS 2 Distribution | Jazzy                                                                                                                                                                    |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
