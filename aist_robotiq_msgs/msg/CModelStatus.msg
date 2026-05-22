@@ -10,7 +10,7 @@ uint8 g_obj  # - object detection for two-finger grippers
              #     0: moving
              #     1: outer grip
              #     2: inner grip,
-             #     3: no object at rest)
+             #     3: no object at rest
              # - motion status for 3F-gripper
 	     #     0: moving toward requested position
              #     1: one or two fingers stopped before requested position
@@ -18,7 +18,7 @@ uint8 g_obj  # - object detection for two-finger grippers
              #     3: all fingers reached requested position
 
 # Byte 1
-uint8 g_vas  # - EPick vacuum actuator status
+uint8 g_dta  # - EPick vacuum actuator status (gVAS)
              #     0: standby
              #     1: gripping
              #     2: passive releasing

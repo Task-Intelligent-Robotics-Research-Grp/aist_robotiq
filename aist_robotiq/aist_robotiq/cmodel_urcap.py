@@ -99,13 +99,13 @@ class CModelURCap(CModelBase):
                 ('GTO', command.r_gto),
                 ('ATR', command.r_atr),
                 ('ARD', command.r_ard),
-                ('ICF', command.r_icf),                 # Byte 1
-                ('ICS', command.r_ics),
                 ('POS', command.r_pr),                  # Byte 3
                 ('SPE', command.r_sp),                  # Byte 4
                 ('FOR', command.r_fr)]                  # Byte 5
-        if self._arg3f[command.r_sid]:
-            vars += [('PRB', command.r_prb),            # Byte 6
+        if self._gripper_types[command.r_sid] == 'arg3f':
+            vars += [('ICF', command.r_icf),            # Byte 1
+                     ('ICS', command.r_ics),
+                     ('PRB', command.r_prb),            # Byte 6
                      ('SPB', command.r_spb),            # Byte 7
                      ('FRB', command.r_frb),            # Byte 8
                      ('PRC', command.r_prc),            # Byte 9
@@ -114,7 +114,7 @@ class CModelURCap(CModelBase):
                      ('PRS', command.r_prs),            # Byte 12
                      ('SPS', command.r_sps),            # Byte 13
                      ('FRS', command.r_frs)]            # Byte 14
-        self._set_vars(dict(vars))
+        self._set_vars(vars)
 
     def get_status(self, slave_id):
         self.get_logger().info('### get_status(): slave_id=%d' % slave_id)
@@ -134,8 +134,8 @@ class CModelURCap(CModelBase):
         status.g_pr  = self._get_var('PRE')             # Byte 3
         status.g_po  = self._get_var('POS')             # Byte 4
         status.g_cou = self._get_var('COU')             # Byte 5
-        if self._arg3f[slave_id]:
-            status.g_vas = self._get_var('DTA')         # Byte 1
+        if self._gripper_types[slave_id] == 'arg3f':
+            status.g_dta = self._get_var('DTA')         # Byte 1
             status.g_dtb = self._get_var('DTB')
             status.g_dtc = self._get_var('DTC')
             status.g_dts = self._get_var('DTS')
@@ -148,23 +148,25 @@ class CModelURCap(CModelBase):
             status.g_prs = self._get_var('PRS')         # Byte 12
             status.g_pos = self._get_var('POS')         # Byte 13
             status.g_cus = self._get_var('CUS')         # Byte 14
+        elif self._gripper_types[slave_id] == 'epick':
+            status.g_dta = self._get_var('VST')         # Byte 1
         return status
 
-    def _set_vars(self, var_dict):
+    def _set_vars(self, vars):
         """ Set values to variables.
 
         Sends the appropriate command via socket to set the value
         of n variables, and waits for its 'ack' response.
 
-        :param var_dict: Dictionary of variables to set (variable_name, value).
-        :return:         True on successful reception of ack,
-                         false if no ack was received,
-                         indicating the set may not have been effective.
+        :param vars: List of tuples with (variable_name, value).
+        :return:     True on successful reception of ack,
+                     false if no ack was received,
+                     indicating the set may not have been effective.
         """
         # construct unique command
         cmd = 'SET'
-        for variable, value in var_dict.items():
-            cmd += ' ' + variable + ' ' + str(value)
+        for var in vars:
+            cmd += ' ' + var[0] + ' ' + str(var[1])
         cmd += '\n'  # new line is required for the command to finish
         # atomic commands send/rcv
         with self._lock:
@@ -185,7 +187,7 @@ class CModelURCap(CModelBase):
                          false if no ack was received,
                          indicating the set may not have been effective.
         """
-        return self._set_vars({variable:value})
+        return self._set_vars([(variable, value)])
 
     def _get_var(self, variable):
         """ Get value of a variable.

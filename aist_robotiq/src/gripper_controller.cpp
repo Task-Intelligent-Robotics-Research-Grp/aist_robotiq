@@ -789,7 +789,7 @@ void
 GripperController::process_gripper_command(const cmodel_status_cp& status)
 {
     // std::cerr << "g_obj=" << int(status->g_obj)
-    //           << ", g_dt=[" << int(status->g_vas)
+    //           << ", g_dt=[" << int(status->g_dta)
     //           << ',' << int(status->g_dtb)
     //           << ',' << int(status->g_dtc)
     //           << ',' << int(status->g_dts)
