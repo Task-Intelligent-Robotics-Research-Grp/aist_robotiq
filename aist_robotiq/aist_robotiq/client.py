@@ -117,13 +117,13 @@ class RobotiqGripper(SimpleActionClient):
         return self._name + '_base_link'
 
     @property
-    def tip_link(self):
+    def tip_link(self) -> str:
         """ Name of the gripper's tip link.
         """
         return self._name + '_tip_link'
 
     @property
-    def parameters(self):
+    def parameters(self) -> dict:
         """ Dictionary of gripper parameters.
         """
         if 'grasp_position' not in self._parameters:
@@ -132,7 +132,9 @@ class RobotiqGripper(SimpleActionClient):
             self._parameters['release_position'] = self._max_gap[0]
         return self._parameters
 
-    def pregrasp(self):
+    def pregrasp(self) -> None:
+        """ Move to release position and return immediatelty.
+        """
         self.release(timeout_sec=0.0)
 
     def grasp(self, *, timeout_sec: Optional[float]=None):
@@ -153,7 +155,9 @@ class RobotiqGripper(SimpleActionClient):
                          max_effort=self.parameters['max_effort'],
                          timeout_sec=timeout_sec)
 
-    def postgrasp(self):
+    def postgrasp(self) -> None:
+        """ Move to grasp position and return immediatelty.
+        """
         self.grasp(timeout_sec=0.0)
 
     def release(self, *, timeout_sec: Optional[float]=None):
@@ -225,7 +229,7 @@ class RobotiqGripper(SimpleActionClient):
         """
         return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
 
-    def set_max_effort(self, max_effort: float):
+    def set_max_effort(self, max_effort: float) -> None:
         """ Set maximum effort to be applied when grasping.
 
         Args:
@@ -266,7 +270,7 @@ class RobotiqGripper(SimpleActionClient):
         else:
             return False
 
-    def _get_controller_parameters(self):
+    def _get_controller_parameters(self) -> None:
         timeout_sec = 10.0
         values = ParameterClient(self._node, self._name + '_controller') \
                 .get_parameters_sync(['min_gap', 'max_gap',
@@ -277,21 +281,21 @@ class RobotiqGripper(SimpleActionClient):
         self._min_position = values[2]
         self._max_position = values[3]
 
-    def _position(self, gap: float):
+    def _position(self, gap: float) -> float:
         idx = self._idx()
         return (gap - self._min_gap[idx]) * self._position_per_gap(idx) \
              + self._min_position[idx]
 
-    def _gap(self, position: float):
+    def _gap(self, position: float) -> float:
         idx = self._idx()
         return (position - self._min_position[idx]) \
              / self._position_per_gap(idx) + self._min_gap[idx]
 
-    def _position_per_gap(self, idx):
+    def _position_per_gap(self, idx: int) -> float:
         return (self._max_position[idx] - self._min_position[idx]) \
              / (self._max_gap[idx]      - self._min_gap[idx])
 
-    def _idx(self):
+    def _idx(self) -> int:
         return 3 if self._mode == SetMode.Goal.SCISSOR else 0
 
 #************************************************************************
@@ -327,41 +331,41 @@ class RobotiqSuction(SimpleActionClient):
                             'grasp_timeout':      grasp_timeout_sec}
 
     @property
-    def name(self):
+    def name(self) -> str:
         """ Name of the gripper.
         """
         return self._name
 
     @property
-    def type(self):
+    def type(self) -> str:
         """ Name of the gripper's type.
         """
         return 'suction'
 
     @property
-    def base_link(self):
+    def base_link(self) -> str:
         """ Name of the gripper's base link.
         """
         return self._name + '_base_link'
 
     @property
-    def tip_link(self):
+    def tip_link(self) -> str:
         """ Name of the gripper's tip link.
         """
         return self._name + '_tip_link'
 
     @property
-    def parameters(self):
+    def parameters(self) -> dict:
         """ Dictionary of gripper parameters.
         """
         return self._parameters
 
-    def pregrasp(self):
+    def pregrasp(self) -> None:
         """ Suck forever and return immediately.
         """
         self.suck(max_pressure=self.parameters['grasp_pressure'],
                   min_pressure=self.parameters['detection_pressure'],
-                  grasp_timeout_sec=0.0, timeout_sec=0.0) -> None
+                  grasp_timeout_sec=0.0, timeout_sec=0.0)
 
     def grasp(self, *, timeout_sec: Optional[float]=None):
         """ Grasp an object with the gripper.
@@ -385,7 +389,7 @@ class RobotiqSuction(SimpleActionClient):
                          grasp_timeout_sec=self.parameters['grasp_timeout'],
                          timeout_sec=timeout_sec)
 
-    def postgrasp(self):
+    def postgrasp(self) -> None:
         """ Suck forever and return immediately.
         """
         self.pregrasp()
