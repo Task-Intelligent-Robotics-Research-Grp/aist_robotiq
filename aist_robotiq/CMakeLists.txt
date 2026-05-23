@@ -59,6 +59,7 @@ install(
     scripts/cmodel_driver.py
     scripts/test_gripper_client.py
     scripts/test_suction_client.py
+    scripts/test_dual_gripper_client.py
   DESTINATION
     lib/${PROJECT_NAME}
 )
