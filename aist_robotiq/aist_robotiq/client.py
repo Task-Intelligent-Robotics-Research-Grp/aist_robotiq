@@ -247,7 +247,7 @@ class RobotiqGripper(SimpleActionClient):
 
         Args:
           mode: Grasp mode of Robotiq-3F gripper.
-            Possible values are 'SetMode.Goal.[BASIC|PINCH|WIDE|SCISSOR]'.
+            Possible values are `SetMode.Goal.[BASIC|PINCH|WIDE|SCISSOR]`.
           individual_control_fingers: True if each finger is individually
             controlled.
           individual_control_scissor: True if scissor is controlled independent
