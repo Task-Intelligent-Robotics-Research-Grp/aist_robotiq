@@ -49,7 +49,7 @@ class CModelURCap(CModelBase):
     Uses port 63352 which is opened by the Robotiq Gripper URCap
     and receives ASCII commands.
     """
-    def __init__(self, name):
+    def __init__(self, name: str):
         """ Constructor
         """
         super().__init__(name)
@@ -62,12 +62,17 @@ class CModelURCap(CModelBase):
             raise
         self.get_logger().info('started[ip=%s]' % ip)
 
-    def connect(self, hostname, port=63352, socket_timeout=2.0):
+    def connect(self, hostname: str, port: int=63352,
+                socket_timeout: float=2.0):
         """ Connects to a gripper at the given address.
 
-        :param hostname: Hostname or ip.
-        :param port: Port.
-        :param socket_timeout: Timeout for blocking socket operations.
+        Args:
+          hostname: Hostname or ip.
+          port: Port.
+          socket_timeout: Timeout for blocking socket operations.
+
+        Returns:
+          Socket opened.
         """
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((hostname, port))
@@ -80,21 +85,15 @@ class CModelURCap(CModelBase):
         """
         self._socket.close()
 
-    def activate(self):
-        # Clear and then reset ACT
-        self._set_var('ACT', 0)
-        self._set_var('ACT', 1)
-
-        # Wait until STA == 3.
-        while self._get_var('STA') != 3:
-            time.sleep(0.01)
-
     def put_command(self, command):
-        command  = self._clip_command(command)
+        command = self._clip_command(command)
+
+        # Specify target device.
+        self._set_var('SID', command.r_sid)
+
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
-        vars = [('SID', command.r_sid),
-#                ('ACT', command.r_act),
+        vars = [# ('ACT', command.r_act),
                 ('MOD', command.r_mod),                 # Byte 0
                 ('GTO', command.r_gto),
                 ('ATR', command.r_atr),
@@ -117,9 +116,7 @@ class CModelURCap(CModelBase):
         self._set_vars(vars)
 
     def get_status(self, slave_id):
-        self.get_logger().info('### get_status(): slave_id=%d' % slave_id)
-
-        # Specify device whose status to be read.
+        # Specify target device.
         self._set_var('SID', slave_id)
 
         # Assign status values to their respective variables
@@ -154,14 +151,15 @@ class CModelURCap(CModelBase):
 
     def _set_vars(self, vars):
         """ Set values to variables.
-
         Sends the appropriate command via socket to set the value
         of n variables, and waits for its 'ack' response.
 
-        :param vars: List of tuples with (variable_name, value).
-        :return:     True on successful reception of ack,
-                     false if no ack was received,
-                     indicating the set may not have been effective.
+        Args:
+          vars: List of tuples of (variable_name, value).
+
+        Returns:
+          `True` on successful reception of ack, `False` if no ack was
+          received, indicating the set may not have been effective.
         """
         # construct unique command
         cmd = 'SET'
@@ -177,27 +175,30 @@ class CModelURCap(CModelBase):
 
     def _set_var(self, variable, value):
         """ Set value to variable.
-
         Sends the appropriate command via socket to set the value
         of a variable, and waits for its 'ack' response.
 
-        :param variable: Variable to set.
-        :param value:    Value to set for the variable.
-        :return:         True on successful reception of ack,
-                         false if no ack was received,
-                         indicating the set may not have been effective.
+        Args:
+          variable: Variable to set.
+          value:    Value to set for the variable.
+
+        Returns:
+          `True` on successful reception of ack, `False` if no ack was
+          received, indicating the set may not have been effective.
         """
         return self._set_vars([(variable, value)])
 
     def _get_var(self, variable):
         """ Get value of a variable.
-
         Sends the appropriate command to retrieve the value
         of a variable from the gripper, blocking until the response
         is received or the socket times out.
 
-        :param variable: Name of the variable to retrieve.
-        :return:         Value of the variable as integer.
+        Args:
+          variable: Name of the variable to retrieve.
+
+        Returns:
+          Value of the variable as integer.
         """
         # atomic commands send/rcv
         with self._lock:
@@ -210,7 +211,7 @@ class CModelURCap(CModelBase):
         # note some special variables (like FLT) may send 2 bytes,
         # instead of an integer. We assume integer here
         var_name, value_str = data.decode('UTF-8').split(maxsplit=1)
-        self.get_logger().info('### %s=%s' % (var_name, value_str))
+        #self.get_logger().info('### %s=%s' % (var_name, value_str[0:-1]))
         if var_name != variable:
             raise ValueError('Unexpected response ' + str(data)
                              + ' does not match "' + variable + '"')

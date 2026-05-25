@@ -44,11 +44,13 @@ class CModelBase(Node):
         slave_ids     = self.declare_parameter('slave_ids', [9]).value
         gripper_types = self.declare_parameter('gripper_types',
                                                ['arg2f']).value
+        period        = self.declare_parameter('period', 0.05).value
         self._gripper_types = dict(zip(slave_ids, gripper_types))
         self._pub = self.create_publisher(CModelStatus, '~/cmodel_status', 3)
         self._sub = self.create_subscription(CModelCommand, '~/cmodel_command',
                                              self.put_command, 3)
-        self._timer = self.create_timer(0.05, self._timer_cb)
+        self._timer = self.create_timer(period, self._timer_cb)
+
         self.get_logger().info('{slave_id: gripper_type}: %s'
                                % self._gripper_types)
 

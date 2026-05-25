@@ -52,6 +52,30 @@ namespace aist_robotiq
 /************************************************************************
 *  static functions                                                     *
 ************************************************************************/
+static std::ostream&
+operator <<(std::ostream& out,
+            const aist_robotiq_msgs::msg::CModelStatus& cmodel_status)
+{
+    return out << "[sid: "  << int(cmodel_status.g_sid)
+               << "] gACT=" << int(cmodel_status.g_act)
+               << ", gGTO=" << int(cmodel_status.g_gto)
+               << ", gSTA=" << int(cmodel_status.g_sta)
+               << ", gOBJ=" << int(cmodel_status.g_obj)
+               << ", gFLT=" << int(cmodel_status.g_flt)
+               << ", gPR="  << int(cmodel_status.g_pr)
+               << ", gPO="  << int(cmodel_status.g_po);
+}
+
+static std::ostream&
+operator <<(std::ostream& out,
+            const aist_robotiq_msgs::msg::CModelCommand& cmodel_command)
+{
+    return out << "[sid: "  << int(cmodel_command.r_sid)
+               << "] rACT=" << int(cmodel_command.r_act)
+               << ", rGTO=" << int(cmodel_command.r_gto)
+               << ", rPR="  << int(cmodel_command.r_pr);
+}
+
 static inline rclcpp::SubscriptionOptions
 create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
 {
@@ -275,6 +299,9 @@ class GripperController : public rclcpp::Node
                     cmodel_command->r_prs = pos[3];
                     cmodel_command->r_sps = vel[3];
                     cmodel_command->r_frs = eff[3];
+
+                    // RCLCPP_INFO_STREAM(get_logger(),
+                    //                    "### command: " << *cmodel_command);
 
                     _cmodel_command_pub->publish(std::move(cmodel_command));
                 }

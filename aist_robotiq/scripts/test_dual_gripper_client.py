@@ -105,7 +105,7 @@ class TestDualGripperClient(Node):
                 self._suction.release()
             elif key == 'sp':
                 pressure = float(input('  pressure: '))
-                self._gripper.suck(pressure, timeout_sec=0.0)
+                self._suction.suck(pressure, timeout_sec=0.0)
             elif key == 'sc':
                 self._suction.cancel_goal()
             elif key == 'sw':
