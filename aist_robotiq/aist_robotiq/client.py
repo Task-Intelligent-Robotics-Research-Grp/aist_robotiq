@@ -54,7 +54,7 @@ class RobotiqGripper(SimpleActionClient):
     """ Action client of the controller for Robotiq grippers.
     """
     def __init__(self, node: Node, name: str='a_bot_gripper',
-                 *, max_effort: float=0.0):
+                 *, max_effort: float=0.0, velocity: float=0.1):
         """
         Args:
           node: The ROS node to add the suction tool client to.
@@ -67,7 +67,7 @@ class RobotiqGripper(SimpleActionClient):
 
         # Create action client for gripper command.
         self._cbg = MutuallyExclusiveCallbackGroup()
-        super().__init__(node, GripperCommand, controller_ns + '/gripper_cmd',
+        super().__init__(node, GripperCommand, controller_ns + '/command',
                          callback_group=self._cbg)
 
         # Create service client for setting velocity.
@@ -94,7 +94,7 @@ class RobotiqGripper(SimpleActionClient):
         # Initialize property dictionary with initial max_effort value.
         # Other parameters, 'grasp_position' and 'release_position',
         # for computing gap values will be obtained from the controller.
-        self._parameters = {'max_effort': max_effort}
+        self._parameters = {'max_effort': max_effort, 'velocity': velocity}
 
     @property
     def name(self) -> str:
@@ -227,6 +227,7 @@ class RobotiqGripper(SimpleActionClient):
         Args:
           velocity: Desired velocity.
         """
+        self._parameters['velocity'] = velocity
         return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
 
     def set_max_effort(self, max_effort: float) -> None:
@@ -321,7 +322,7 @@ class RobotiqSuction(SimpleActionClient):
         self._name = name
         self._cbg  = MutuallyExclusiveCallbackGroup()
         super().__init__(node, SuctionCommand,
-                         name + '_controller/gripper_cmd',
+                         name + '_controller/command',
                          callback_group=self._cbg)
         self.wait_for_server()
 

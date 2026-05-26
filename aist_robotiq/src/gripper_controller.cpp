@@ -532,7 +532,7 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                      std::placeholders::_2))),
 
      _position_command_sub(create_subscription<float64_multi_array_t>(
-                               "~/commands", 1,
+                               "~/position_command", 1,
                                std::bind(
                                    &GripperController::position_command_cb,
                                    this, std::placeholders::_1))),
@@ -541,7 +541,7 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
      _gripper_command_cbg(create_callback_group(
                               rclcpp::CallbackGroupType::MutuallyExclusive)),
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
-                              this, "~/gripper_cmd",
+                              this, "~/command",
                               std::bind(
                                   &GripperController::gripper_command_goal_cb,
                                   this,
