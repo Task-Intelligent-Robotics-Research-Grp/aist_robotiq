@@ -35,10 +35,10 @@ colcon build
 ## Quick start
 You can launch gripper with two or three fingers by issueing the following command,
 ```bash
-ros2 launch aist_robotiq test.launch.py [gripper_type:=<gripper_type>] [driver_type:=<driver_type>] [ip:=<ip>] [dev:=<dev>]
+ros2 launch aist_robotiq test.launch.py [gripper_name:=<gripper_name>] [driver_type:=<driver_type>] [ip:=<ip>] [dev:=<dev>]
 ```
 where
-- **gripper_type**: Type of the gripper. Possible choices are `robotiq_85`, `robotiq_140`, `robotiq_hande` and `robotiq_3f` (default: `robotiq_85`).
+- **gripper_name**: Name of the gripper. Possible choices are `robotiq_85`, `robotiq_140`, `robotiq_hande` and `robotiq_3f` (default: `robotiq_85`).
 - **driver_type**: Type of the driver. Should be chosen accorrding to how the gripper hardware is electrically connected to the robot or PC. Possible choices are `rtu`, `tcp` and `urcap` (default: `urcap`).
 - **ip**: IP address of gripper or UR robot for `driver_type` of `tcp` or `urcap`, respectively (default: `192.168.1.11`).
 - **dev**: TTY device name of Modbus for `driver_type` of `rtu` (default: `/dev/ttyUSB0`).
