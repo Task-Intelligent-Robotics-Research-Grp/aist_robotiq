@@ -1,11 +1,42 @@
+###################
+#  Robotiq 2F-85  #
+###################
+robotiq_85_driver:
+  ros__parameters:
+    ip:            $(var ip)   # for tcp/urcap drivers
+    dev:           $(var dev)  # for rtu drivers
+    slave_ids:     [9]         # list of slave IDs of Modbus devices
+    gripper_types: [arg2f]
+
+robotiq_85_controller:
+  ros__parameters:
+    slave_id: 9
+    joints:   [robotiq_85_finger_joint]
+
+    # Gap width between fingers in meters [0.000, 0.085]
+    min_gap: [0.000]
+    max_gap: [0.085]
+
+    # Gripper position in radians [0.81, 0,00]
+    min_position: [0.81]
+    max_position: [0.00]
+
+    # Gripper velocity in m/s [0.020, 0.150]
+    min_velocity: [0.020]
+    max_velocity: [0.150]
+
+    # Gripper effort in N. [0.0, 235.0]
+    min_effort: [  0.0]
+    max_effort: [235.0]
+
 ####################
 #  Robotiq 2F-140  #
 ####################
 robotiq_140_driver:
   ros__parameters:
-    ip:            10.66.171.40  # for tcp/urcap drivers
-    dev:           /dev/ttyUSB0  # for rtu drivers
-    slave_ids:     [9]           # list of slave IDs of Modbus devices
+    ip:            $(var ip)   # for tcp/urcap drivers
+    dev:           $(var dev)  # for rtu drivers
+    slave_ids:     [9]         # list of slave IDs of Modbus devices
     gripper_types: [arg2f]
 
 robotiq_140_controller:
@@ -30,44 +61,13 @@ robotiq_140_controller:
     max_effort: [125.0]
 
 ###################
-#  Robotiq 2F-85  #
-###################
-robotiq_85_driver:
-  ros__parameters:
-    ip:            10.66.171.41  # for tcp/urcap drivers
-    dev:           /dev/ttyUSB0  # for rtu drivers
-    slave_ids:     [9]           # list of slave IDs of Modbus devices
-    gripper_types: [arg2f]
-
-robotiq_85_controller:
-  ros__parameters:
-    slave_id: 9
-    joints:   [robotiq_85_finger_joint]
-
-    # Gap width between fingers in meters [0.000, 0.085]
-    min_gap: [0.000]
-    max_gap: [0.085]
-
-    # Gripper position in radians [0.81, 0,00]
-    min_position: [0.81]
-    max_position: [0.00]
-
-    # Gripper velocity in m/s [0.020, 0.150]
-    min_velocity: [0.020]
-    max_velocity: [0.150]
-
-    # Gripper effort in N. [0.0, 235.0]
-    min_effort: [  0.0]
-    max_effort: [235.0]
-
-###################
 #  Robotiq HandE  #
 ###################
 robotiq_hande_driver:
   ros__parameters:
-    ip:            10.66.171.41  # for tcp/urcap drivers
-    dev:           /dev/ttyUSB0  # for rtu drivers
-    slave_ids:     [9]           # list of slave IDs of Modbus devices
+    ip:            $(var ip)   # for tcp/urcap drivers
+    dev:           $(var dev)  # for rtu drivers
+    slave_ids:     [9]         # list of slave IDs of Modbus devices
     gripper_types: [arg2f]
 
 robotiq_hande_controller:
@@ -96,9 +96,9 @@ robotiq_hande_controller:
 ################
 robotiq_3f_driver:
   ros__parameters:
-    ip:            192.168.1.11  # for tcp/urcap drivers
-    dev:           /dev/ttyUSB0  # for rtu drivers
-    slave_ids:     [9]           # list of slave IDs of Modbus devices
+    ip:            $(var ip)   # for tcp/urcap drivers
+    dev:           $(var dev)  # for rtu drivers
+    slave_ids:     [9]         # list of slave IDs of Modbus devices
     gripper_types: [arg3f]
 
 robotiq_3f_controller:
@@ -131,9 +131,9 @@ robotiq_3f_controller:
 ###################
 robotiq_epick_driver:
   ros__parameters:
-    ip:            10.66.171.41  # Used for tcp/urcap drivers
-    dev:           /dev/ttyUSB0  # Used for rtu drivers
-    slave_ids:     [9]           # list of slave IDs of Modbus devices
+    ip:            $(var ip)   # Used for tcp/urcap drivers
+    dev:           $(var dev)  # Used for rtu drivers
+    slave_ids:     [9]         # list of slave IDs of Modbus devices
     gripper_types: [epick]
 
 robotiq_epick_controller:
@@ -145,9 +145,9 @@ robotiq_epick_controller:
 #############################################################
 dual_gripper_driver:
   ros__parameters:
-    ip:            10.66.171.41  # for tcp/urcap drivers
-    dev:           /dev/ttyUSB0  # for rtu drivers
-    slave_ids:     [9, 2]        # list of slave IDs of Modbus devices
+    ip:            $(var ip)   # for tcp/urcap drivers
+    dev:           $(var dev)  # for rtu drivers
+    slave_ids:     [9, 2]      # list of slave IDs of Modbus devices
     gripper_types: [arg2f, epick]
 
 right_epick_controller:
