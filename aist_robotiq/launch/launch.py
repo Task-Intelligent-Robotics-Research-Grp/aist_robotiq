@@ -22,7 +22,7 @@ launch_arguments = [
         'description': 'comma-separated list of device names'
     },
     {
-        'name':        'gripper_types',
+        'name':        'device_types',
         'default':     'RobotiqGripper',        # RobotiqGripper/RobotiqEPick
         'description': 'comma-separated list of device types'
     },
@@ -86,7 +86,7 @@ def launch_setup(context):
     for gripper_name, device_type \
           in zip(LaunchConfiguration('gripper_names').perform(context)
                  .split(','),
-                 LaunchConfiguration('gripper_types').perform(context)
+                 LaunchConfiguration('device_types').perform(context)
                  .split(',')):
         composable_nodes.append(
             ComposableNode(name=gripper_name + '_controller',

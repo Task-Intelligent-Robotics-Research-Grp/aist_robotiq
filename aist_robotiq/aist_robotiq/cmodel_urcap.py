@@ -101,7 +101,7 @@ class CModelURCap(CModelBase):
                 ('POS', command.r_pr),                  # Byte 3
                 ('SPE', command.r_sp),                  # Byte 4
                 ('FOR', command.r_fr)]                  # Byte 5
-        if self._gripper_types[command.r_sid] == 'arg3f':
+        if self._device_types[command.r_sid] == 'arg3f':
             vars += [('ICF', command.r_icf),            # Byte 1
                      ('ICS', command.r_ics),
                      ('PRB', command.r_prb),            # Byte 6
@@ -131,7 +131,7 @@ class CModelURCap(CModelBase):
         status.g_pr  = self._get_var('PRE')             # Byte 3
         status.g_po  = self._get_var('POS')             # Byte 4
         status.g_cou = self._get_var('COU')             # Byte 5
-        if self._gripper_types[slave_id] == 'arg3f':
+        if self._device_types[slave_id] == 'arg3f':
             status.g_dta = self._get_var('DTA')         # Byte 1
             status.g_dtb = self._get_var('DTB')
             status.g_dtc = self._get_var('DTC')
@@ -145,7 +145,7 @@ class CModelURCap(CModelBase):
             status.g_prs = self._get_var('PRS')         # Byte 12
             status.g_pos = self._get_var('POS')         # Byte 13
             status.g_cus = self._get_var('CUS')         # Byte 14
-        elif self._gripper_types[slave_id] == 'epick':
+        elif self._device_types[slave_id] == 'epick':
             status.g_dta = self._get_var('VST')         # Byte 1
         return status
 

@@ -3,10 +3,10 @@
 ###################
 robotiq_85_driver:
   ros__parameters:
-    ip:            $(var ip)   # for tcp/urcap drivers
-    dev:           $(var dev)  # for rtu drivers
-    slave_ids:     [9]         # list of slave IDs of Modbus devices
-    gripper_types: [arg2f]
+    ip:           $(var ip)   # for tcp/urcap drivers
+    dev:          $(var dev)  # for rtu drivers
+    slave_ids:    [9]         # list of slave IDs of Modbus devices
+    device_types: [arg2f]
 
 robotiq_85_controller:
   ros__parameters:
@@ -34,10 +34,10 @@ robotiq_85_controller:
 ####################
 robotiq_140_driver:
   ros__parameters:
-    ip:            $(var ip)   # for tcp/urcap drivers
-    dev:           $(var dev)  # for rtu drivers
-    slave_ids:     [9]         # list of slave IDs of Modbus devices
-    gripper_types: [arg2f]
+    ip:           $(var ip)   # for tcp/urcap drivers
+    dev:          $(var dev)  # for rtu drivers
+    slave_ids:    [9]         # list of slave IDs of Modbus devices
+    device_types: [arg2f]
 
 robotiq_140_controller:
   ros__parameters:
@@ -65,10 +65,10 @@ robotiq_140_controller:
 ###################
 robotiq_hande_driver:
   ros__parameters:
-    ip:            $(var ip)   # for tcp/urcap drivers
-    dev:           $(var dev)  # for rtu drivers
-    slave_ids:     [9]         # list of slave IDs of Modbus devices
-    gripper_types: [arg2f]
+    ip:           $(var ip)   # for tcp/urcap drivers
+    dev:          $(var dev)  # for rtu drivers
+    slave_ids:    [9]         # list of slave IDs of Modbus devices
+    device_types: [arg2f]
 
 robotiq_hande_controller:
   ros__parameters:
@@ -96,10 +96,10 @@ robotiq_hande_controller:
 ################
 robotiq_3f_driver:
   ros__parameters:
-    ip:            $(var ip)   # for tcp/urcap drivers
-    dev:           $(var dev)  # for rtu drivers
-    slave_ids:     [9]         # list of slave IDs of Modbus devices
-    gripper_types: [arg3f]
+    ip:           $(var ip)   # for tcp/urcap drivers
+    dev:          $(var dev)  # for rtu drivers
+    slave_ids:    [9]         # list of slave IDs of Modbus devices
+    device_types: [arg3f]
 
 robotiq_3f_controller:
   ros__parameters:
@@ -131,10 +131,10 @@ robotiq_3f_controller:
 ###################
 robotiq_epick_driver:
   ros__parameters:
-    ip:            $(var ip)   # Used for tcp/urcap drivers
-    dev:           $(var dev)  # Used for rtu drivers
-    slave_ids:     [9]         # list of slave IDs of Modbus devices
-    gripper_types: [epick]
+    ip:           $(var ip)   # Used for tcp/urcap drivers
+    dev:          $(var dev)  # Used for rtu drivers
+    slave_ids:    [9]         # list of slave IDs of Modbus devices
+    device_types: [epick]
 
 robotiq_epick_controller:
   ros__parameters:
@@ -145,10 +145,10 @@ robotiq_epick_controller:
 #############################################################
 dual_gripper_driver:
   ros__parameters:
-    ip:            $(var ip)   # for tcp/urcap drivers
-    dev:           $(var dev)  # for rtu drivers
-    slave_ids:     [9, 2]      # list of slave IDs of Modbus devices
-    gripper_types: [arg2f, epick]
+    ip:           $(var ip)   # for tcp/urcap drivers
+    dev:          $(var dev)  # for rtu drivers
+    slave_ids:    [9, 2]      # list of slave IDs of Modbus devices
+    device_types: [arg2f, epick]
 
 right_epick_controller:
   ros__parameters:

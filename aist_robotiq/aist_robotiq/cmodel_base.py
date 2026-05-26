@@ -41,24 +41,23 @@ from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 class CModelBase(Node):
     def __init__(self, name):
         super().__init__(name)
-        slave_ids     = self.declare_parameter('slave_ids', [9]).value
-        gripper_types = self.declare_parameter('gripper_types',
-                                               ['arg2f']).value
-        period        = self.declare_parameter('period', 0.05).value
-        self._gripper_types = dict(zip(slave_ids, gripper_types))
+        slave_ids    = self.declare_parameter('slave_ids', [9]).value
+        device_types = self.declare_parameter('device_types', ['arg2f']).value
+        period       = self.declare_parameter('period', 0.05).value
+        self._device_types = dict(zip(slave_ids, device_types))
         self._pub = self.create_publisher(CModelStatus, '~/cmodel_status', 3)
         self._sub = self.create_subscription(CModelCommand, '~/cmodel_command',
                                              self.put_command, 3)
         self._timer = self.create_timer(period, self._timer_cb)
 
         self.get_logger().info('{slave_id: gripper_type}: %s'
-                               % self._gripper_types)
+                               % self._device_types)
 
     def __del__(self):
         self.disconnect()           # (defined in derived class)
 
     def activate_devices(self):
-        for slave_id in self._gripper_types.keys():
+        for slave_id in self._device_types.keys():
             self.get_logger().info('activating device[slave_id=%d]' % slave_id)
             self.put_command(CModelCommand(r_sid=slave_id, r_act=0, r_gto=0))
             time.sleep(0.1)
@@ -67,7 +66,7 @@ class CModelBase(Node):
         self.get_logger().info('all devices activated')
 
     def _timer_cb(self):
-        for slave_id in self._gripper_types.keys():
+        for slave_id in self._device_types.keys():
             status = self.get_status(slave_id)  # (defined in derived class)
             if status is not None:
                 self._pub.publish(status)  # Send device status to controllers

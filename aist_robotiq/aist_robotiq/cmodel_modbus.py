@@ -68,7 +68,7 @@ class CModelModbusBase(CModelBase):
         builder.add_8bit_uint(command.r_pr)             # Byte 3
         builder.add_8bit_uint(command.r_sp)             # Byte 4
         builder.add_8bit_uint(command.r_fr)             # Byte 5
-        if self._gripper_types[command.r_sid] == 'arg3f':
+        if self._device_types[command.r_sid] == 'arg3f':
             builder.add_8bit_uint(command.r_prb)        # Byte 6
             builder.add_8bit_uint(command.r_spb)        # Byte 7
             builder.add_8bit_uint(command.r_frb)        # Byte 8
@@ -82,7 +82,7 @@ class CModelModbusBase(CModelBase):
 
     def get_status(self, slave_id):
         # Acquire status from the Gripper
-        nregs = 8 if self._gripper_types[slave_id] == 'arg3f' else 3
+        nregs = 8 if self._device_types[slave_id] == 'arg3f' else 3
         try:
             result = self._read_registers(nregs, slave_id)
             if result.isError():
@@ -115,7 +115,7 @@ class CModelModbusBase(CModelBase):
         status.g_pr  = decoder.decode_8bit_uint()       # Byte 3
         status.g_po  = decoder.decode_8bit_uint()       # Byte 4
         status.g_cou = decoder.decode_8bit_uint()       # Byte 5
-        if self._gripper_types[slave_id] == 'arg3f':
+        if self._device_types[slave_id] == 'arg3f':
             status.g_prb = decoder.decode_8bit_uint()   # Byte 6
             status.g_pob = decoder.decode_8bit_uint()   # Byte 7
             status.g_cub = decoder.decode_8bit_uint()   # Byte 8

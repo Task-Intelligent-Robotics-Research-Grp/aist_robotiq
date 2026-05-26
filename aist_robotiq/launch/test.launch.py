@@ -30,11 +30,11 @@ def declare_launch_arguments(args):
             for arg in args]
 
 def launch_setup(context):
-    gripper_type = IfElseSubstitution(
-                       EqualsSubstitution(
-                           LaunchConfiguration('gripper_name'),
-                           'robotiq_epick'),
-                       'RobotiqSuction', 'RobotiqGripper')
+    device_type = IfElseSubstitution(
+                     EqualsSubstitution(
+                         LaunchConfiguration('gripper_name'),
+                         'robotiq_epick'),
+                     'RobotiqSuction', 'RobotiqGripper')
     client_type = IfElseSubstitution(
                       EqualsSubstitution(gripper_type, 'RobotiqSuction'),
                       'suction', 'gripper')
@@ -56,10 +56,10 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(), 'launch.py']),
             launch_arguments=[
-                ('gripper_names',  LaunchConfiguration('gripper_name')),
-                ('gripper_types',  gripper_type),
-                ('driver_ns',      [LaunchConfiguration('gripper_name'),
-                                    '_driver']),
+                ('gripper_names', LaunchConfiguration('gripper_name')),
+                ('device_types',  gripper_type),
+                ('driver_ns',     [LaunchConfiguration('gripper_name'),
+                                   '_driver']),
             ]),
         Node(name=['test_', client_type, '_client'],
              package='aist_robotiq',
