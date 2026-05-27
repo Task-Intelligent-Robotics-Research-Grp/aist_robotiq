@@ -39,7 +39,6 @@ from control_msgs.msg             import GripperCommand as GripperCommandMsg
 from aist_robotiq_msgs.action     import SetMode
 from aist_robotiq_msgs.action     import SuctionCommand
 from aist_robotiq_msgs.msg        import SuctionCommand as SuctionCommandMsg
-from task_wrappers.service_client import ServiceClient
 from task_wrappers.action_client  import SimpleActionClient
 from ddynamic_reconfigure2.client import ParameterClient
 
