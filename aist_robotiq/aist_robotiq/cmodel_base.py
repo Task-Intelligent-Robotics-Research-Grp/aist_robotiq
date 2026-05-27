@@ -31,7 +31,6 @@
 #
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import time
 from rclpy.node            import Node
 from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 
@@ -55,15 +54,6 @@ class CModelBase(Node):
 
     def __del__(self):
         self.disconnect()           # (defined in derived class)
-
-    def activate_devices(self):
-        for slave_id in self._device_types.keys():
-            self.get_logger().info('activating device[slave_id=%d]' % slave_id)
-            self.put_command(CModelCommand(r_sid=slave_id, r_act=0, r_gto=0))
-            time.sleep(0.1)
-            self.put_command(CModelCommand(r_sid=slave_id, r_act=1, r_gto=1))
-            time.sleep(0.1)
-        self.get_logger().info('all devices activated')
 
     def _timer_cb(self):
         for slave_id in self._device_types.keys():

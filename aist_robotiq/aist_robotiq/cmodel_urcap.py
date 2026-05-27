@@ -85,6 +85,9 @@ class CModelURCap(CModelBase):
         """
         self._socket.close()
 
+    def activate_devices(self):
+        pass
+
     def put_command(self, command):
         command = self._clip_command(command)
 
