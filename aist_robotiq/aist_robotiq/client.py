@@ -36,7 +36,6 @@ from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
 from action_msgs.msg              import GoalStatus
 from control_msgs.action          import GripperCommand
 from control_msgs.msg             import GripperCommand as GripperCommandMsg
-from aist_robotiq_msgs.srv        import SetVelocity
 from aist_robotiq_msgs.action     import SetMode
 from aist_robotiq_msgs.action     import SuctionCommand
 from aist_robotiq_msgs.msg        import SuctionCommand as SuctionCommandMsg
@@ -53,8 +52,7 @@ from typing                       import Optional
 class RobotiqGripper(SimpleActionClient):
     """ Action client of the controller for Robotiq grippers.
     """
-    def __init__(self, node: Node, name: str='a_bot_gripper',
-                 *, max_effort: float=0.0, velocity: float=0.1):
+    def __init__(self, node: Node, name: str='a_bot_gripper'):
         """
         Args:
           node: The ROS node to add the suction tool client to.
@@ -70,11 +68,6 @@ class RobotiqGripper(SimpleActionClient):
         super().__init__(node, GripperCommand, controller_ns + '/command',
                          callback_group=self._cbg)
 
-        # Create service client for setting velocity.
-        self._set_velocity = ServiceClient(node, SetVelocity,
-                                           controller_ns + '/set_velocity',
-                                           callback_group=self._cbg)
-
         # Create action client for switching mode.
         self._mode = SetMode.Goal.BASIC
         self._individual_control_fingers = True
@@ -82,6 +75,9 @@ class RobotiqGripper(SimpleActionClient):
         self._set_mode = SimpleActionClient(node, SetMode,
                                             controller_ns + '/set_mode',
                                             callback_group=self._cbg)
+
+        # Create parameter client for setting/getting controller parameters.
+        self._param_clnt = ParameterClient(node, controller_ns)
 
         # These values are required for computing gap(in meters) from gripper's
         # position(in radians), which will be obtained from the controller
@@ -91,10 +87,10 @@ class RobotiqGripper(SimpleActionClient):
         self._min_position = None
         self._max_position = None
 
-        # Initialize property dictionary with initial max_effort value.
+        # Initialize parameter dictionary with initial max_effort value.
         # Other parameters, 'grasp_position' and 'release_position',
-        # for computing gap values will be obtained from the controller.
-        self._parameters = {'max_effort': max_effort, 'velocity': velocity}
+        # will be obtained from the controller on demand.
+        self._parameters = {'max_effort': 0.0}
 
     @property
     def name(self) -> str:
@@ -192,6 +188,8 @@ class RobotiqGripper(SimpleActionClient):
             A tuple of the goal status and the movement result of
             `control_msgs.action.GripperCommand.Result` type
         """
+        if not self._min_gap:
+            self._get_controller_parameters()
         return self.send_goal(GripperCommand.Goal(
                                   command=GripperCommandMsg(
                                       position=self._position(gap),
@@ -226,9 +224,14 @@ class RobotiqGripper(SimpleActionClient):
 
         Args:
           velocity: Desired velocity.
+
+        Returns:
+          bool: `True` iff success.
         """
-        self._parameters['velocity'] = velocity
-        return self._set_velocity.call(SetVelocity.Request(velocity=velocity))
+        timeout_sec = 1.0
+        return self._param_clnt \
+                   .set_parameters_sync([('velocity', velocity)],
+                                        timeout_sec=timeout_sec)[0].successful
 
     def set_max_effort(self, max_effort: float) -> None:
         """ Set maximum effort to be applied when grasping.
@@ -274,10 +277,10 @@ class RobotiqGripper(SimpleActionClient):
 
     def _get_controller_parameters(self) -> None:
         timeout_sec = 10.0
-        values = ParameterClient(self._node, self._name + '_controller') \
-                .get_parameters_sync(['min_gap', 'max_gap',
-                                      'min_position', 'max_position'],
-                                     timeout_sec=timeout_sec)
+        values = self._param_clnt.get_parameters_sync(['min_gap', 'max_gap',
+                                                       'min_position',
+                                                       'max_position'],
+                                                      timeout_sec=timeout_sec)
         self._min_gap      = values[0]
         self._max_gap      = values[1]
         self._min_position = values[2]
@@ -367,7 +370,7 @@ class RobotiqSuction(SimpleActionClient):
         """
         self.suck(max_pressure=self.parameters['grasp_pressure'],
                   min_pressure=self.parameters['detection_pressure'],
-                  grasp_timeout_sec=0.0, timeout_sec=0.0)
+                  timeout_sec=0.0)
 
     def grasp(self, *, timeout_sec: Optional[float]=None):
         """ Grasp an object with the gripper.
@@ -388,7 +391,6 @@ class RobotiqSuction(SimpleActionClient):
         """
         return self.suck(max_pressure=self.parameters['grasp_pressure'],
                          min_pressure=self.parameters['detection_pressure'],
-                         grasp_timeout_sec=self.parameters['grasp_timeout'],
                          timeout_sec=timeout_sec)
 
     def postgrasp(self) -> None:
@@ -414,13 +416,11 @@ class RobotiqSuction(SimpleActionClient):
         """
         return self.suck(max_pressure=self.parameters['release_pressure'],
                          min_pressure=self.parameters['detection_pressure'],
-                         grasp_timeout_sec=self.parameters['grasp_timeout'],
                          timeout_sec=timeout_sec)
 
     def suck(self, max_pressure: float, *,
-             min_pressure:      Optional[float]=None,
-             grasp_timeout_sec: Optional[float]=None,
-             timeout_sec:       Optional[float]=None):
+             min_pressure: Optional[float]=None,
+             timeout_sec:  Optional[float]=None):
         """ Generate pressure.
 
         Args:
@@ -438,16 +438,17 @@ class RobotiqSuction(SimpleActionClient):
         """
         if not min_pressure:
             min_pressure = self.parameters['detection_pressure']
-        if not grasp_timeout_sec:
-            grasp_timeout_sec = self.parameters['grasp_timeout']
-        if grasp_timeout_sec > 0.0 and \
-           (timeout_sec is None or timeout_sec > grasp_timeout_sec):
-           timeout_sec = grasp_timeout_sec
+        if timeout_sec is None:
+            grasp_timeout = 0.0          # Wait forever
+        elif timeout_sec > 0.0:
+            grasp_timeout = timeout_sec  # Wait same duration as action timeout
+        else:
+            grasp_timeout = self.parameters['grasp_timeout']
         return self.send_goal(
                    SuctionCommand.Goal(
                        command=SuctionCommandMsg(
                            advanced_mode=self.parameters['advanced_mode'],
                            max_pressure=max_pressure,
                            min_pressure=min_pressure,
-                           timeout=grasp_timeout_sec)),
+                           timeout=grasp_timeout)),
                    timeout_sec=timeout_sec)

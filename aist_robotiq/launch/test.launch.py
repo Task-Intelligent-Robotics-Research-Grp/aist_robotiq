@@ -30,10 +30,10 @@ def declare_launch_arguments(args):
             for arg in args]
 
 def launch_setup(context):
-    device_type = IfElseSubstitution(
-                     EqualsSubstitution(
-                         LaunchConfiguration('gripper_name'),
-                         'robotiq_epick'),
+    gripper_type = IfElseSubstitution(
+                       EqualsSubstitution(
+                           LaunchConfiguration('gripper_name'),
+                           'robotiq_epick'),
                      'RobotiqSuction', 'RobotiqGripper')
     client_type = IfElseSubstitution(
                       EqualsSubstitution(gripper_type, 'RobotiqSuction'),
@@ -57,7 +57,7 @@ def launch_setup(context):
             PathJoinSubstitution([ThisLaunchFileDir(), 'launch.py']),
             launch_arguments=[
                 ('gripper_names', LaunchConfiguration('gripper_name')),
-                ('device_types',  gripper_type),
+                ('gripper_types', gripper_type),
                 ('driver_ns',     [LaunchConfiguration('gripper_name'),
                                    '_driver']),
             ]),
@@ -67,7 +67,7 @@ def launch_setup(context):
              parameters=[
                  {'gripper_name': LaunchConfiguration('gripper_name')}
              ],
-             prefix=['gnome-terminal --geometry=80x60 --'],
+             prefix=['gnome-terminal --tab --'],
              output='screen'),
         Node(name='rviz', package='rviz2', executable='rviz2',
              output='screen',

@@ -74,6 +74,7 @@ class TestDualGripperClient(Node):
             print('  sg:        Suction grasp')
             print('  sr:        Suction release')
             print('  sp:        Set specified pressure value to suction')
+            print('  st:        Set grasp timeout')
             print('  sc:        Cancel suction')
             print('  sw:        Wait until suction goal completed')
             print('  q:         Quit\n')
@@ -106,6 +107,9 @@ class TestDualGripperClient(Node):
             elif key == 'sp':
                 pressure = float(input('  pressure: '))
                 self._suction.suck(pressure, timeout_sec=0.0)
+            elif key == 'st':
+                grasp_timeout = float(input('  grasp_timeout: '))
+                self._suction.parameters['grasp_timeout'] = grasp_timeout
             elif key == 'sc':
                 self._suction.cancel_goal()
             elif key == 'sw':

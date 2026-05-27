@@ -42,7 +42,6 @@
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <aist_robotiq_msgs/msg/c_model_status.hpp>
 #include <aist_robotiq_msgs/msg/c_model_command.hpp>
-#include <aist_robotiq_msgs/srv/set_velocity.hpp>
 #include <aist_robotiq_msgs/action/set_mode.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include <Eigen/Core>
@@ -100,7 +99,6 @@ class GripperController : public rclcpp::Node
     using joint_state_t         = sensor_msgs::msg::JointState;
     using float64_multi_array_t = std_msgs::msg::Float64MultiArray;
     using gripper_command_t     = control_msgs::action::GripperCommand;
-    using set_velocity_t        = aist_robotiq_msgs::srv::SetVelocity;
     using set_mode_t            = aist_robotiq_msgs::action::SetMode;
     using goal_uuid_t           = rclcpp_action::GoalUUID;
     using goal_response_t       = rclcpp_action::GoalResponse;
@@ -150,14 +148,6 @@ class GripperController : public rclcpp::Node
 
   // CModelStatus subscription stuffs
     void        cmodel_status_cb(const cmodel_status_cp& status)        ;
-
-  // SetVelocity service stuffs
-    void        set_velocity_cb(req_cp<set_velocity_t> req,
-                                res_p<set_velocity_t>  res)
-                {
-                    _velocity = req->velocity;
-                    res->success = true;
-                }
 
   // Position command stuffs
     void        position_command_cb(msg_p<float64_multi_array_t> command);
@@ -224,7 +214,7 @@ class GripperController : public rclcpp::Node
                 }
     array4d     goal_velocity() const
                 {
-                    return array4d{_velocity};
+                    return array4d{get_parameter("velocity").as_double()};
                 }
     static array4d
                 goal_effort(const goal_cp<gripper_command_t>& goal)
@@ -452,16 +442,12 @@ class GripperController : public rclcpp::Node
     const callback_group_p              _cmodel_status_cbg;
     const sub_p<cmodel_status_t>        _cmodel_status_sub;
 
-  // SetVelocity service stuggs
-    double                              _velocity;
-    const srv_p<set_velocity_t>         _set_velocity_srv;
-
   // Position command topic stuffs
     const sub_p<float64_multi_array_t>  _position_command_sub;
 
   // GripperCommand action stuffs
     array4i                             _goal_pos;
-    const callback_group_p              _gripper_command_cbg;
+    const callback_group_p              _action_command_cbg;
     const action_p<gripper_command_t>   _gripper_command_srv;
     goal_handle_p<gripper_command_t>    _gripper_command_goal_handle;
 
@@ -523,14 +509,6 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                       this, std::placeholders::_1),
                             create_subscription_options(_cmodel_status_cbg))),
 
-     _velocity(0.5*(_min_velocity[0] + _max_velocity[0])),
-     _set_velocity_srv(create_service<set_velocity_t>(
-                           "~/set_velocity",
-                           std::bind(&GripperController::set_velocity_cb,
-                                     this,
-                                     std::placeholders::_1,
-                                     std::placeholders::_2))),
-
      _position_command_sub(create_subscription<float64_multi_array_t>(
                                "~/position_command", 1,
                                std::bind(
@@ -538,8 +516,8 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                    this, std::placeholders::_1))),
 
      _goal_pos{0},
-     _gripper_command_cbg(create_callback_group(
-                              rclcpp::CallbackGroupType::MutuallyExclusive)),
+     _action_command_cbg(create_callback_group(
+                             rclcpp::CallbackGroupType::MutuallyExclusive)),
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
                               this, "~/command",
                               std::bind(
@@ -556,7 +534,7 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                   gripper_command_handle_accepted_cb,
                                   this, std::placeholders::_1),
                               rcl_action_server_get_default_options(),
-                              _gripper_command_cbg)),
+                              _action_command_cbg)),
      _gripper_command_goal_handle(nullptr),
 
      _mode(set_mode_t::Goal::BASIC),
@@ -571,12 +549,16 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                  this, std::placeholders::_1),
                        std::bind(&GripperController::
                                  set_mode_handle_accepted_cb,
-                                 this, std::placeholders::_1))),
+                                 this, std::placeholders::_1),
+                       rcl_action_server_get_default_options(),
+                       _action_command_cbg)),
      _set_mode_goal_handle(nullptr),
 
      _goal_mtx()
 {
     using namespace     std::chrono_literals;
+
+    declare_parameter("velocity", 0.5*(_min_velocity[0] + _max_velocity[0]));
 
     _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
                             this, "joints",

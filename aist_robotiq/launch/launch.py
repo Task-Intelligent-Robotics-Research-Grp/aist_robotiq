@@ -22,7 +22,7 @@ launch_arguments = [
         'description': 'comma-separated list of device names'
     },
     {
-        'name':        'device_types',
+        'name':        'gripper_types',
         'default':     'RobotiqGripper',        # RobotiqGripper/RobotiqEPick
         'description': 'comma-separated list of device types'
     },
@@ -83,15 +83,15 @@ def launch_setup(context):
     param_file = ParameterFile(LaunchConfiguration('param_file'),
                                allow_substs=True)
     composable_nodes = []
-    for gripper_name, device_type \
+    for gripper_name, gripper_type \
           in zip(LaunchConfiguration('gripper_names').perform(context)
                  .split(','),
-                 LaunchConfiguration('device_types').perform(context)
+                 LaunchConfiguration('gripper_types').perform(context)
                  .split(',')):
         composable_nodes.append(
             ComposableNode(name=gripper_name + '_controller',
                            package='aist_robotiq',
-                           plugin=PLUGINS[device_type],
+                           plugin=PLUGINS[gripper_type],
                            parameters=[param_file],
                            remappings=[
                                ('/cmodel_status',

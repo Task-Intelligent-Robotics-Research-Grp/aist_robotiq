@@ -40,7 +40,7 @@ def launch_setup(context):
              package='aist_robotiq',
              executable=['test_dual_gripper_client.py'],
              parameters=[{'gripper_names': ['robotiq_85', 'right_epick']}],
-             prefix=['gnome-terminal --geometry=80x60 --'],
+             prefix=['gnome-terminal --tab --wait --'],
              output='screen'),
         Node(name='rviz', package='rviz2', executable='rviz2',
              output='screen',
