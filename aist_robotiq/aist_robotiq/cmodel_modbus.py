@@ -31,7 +31,7 @@
 #
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import threading, time
+import threading
 from aist_robotiq.cmodel_base import CModelBase
 from aist_robotiq_msgs.msg    import CModelStatus, CModelCommand
 from pymodbus.exceptions      import ModbusIOException
@@ -45,20 +45,6 @@ from pymodbus.constants       import Endian
 class CModelModbusBase(CModelBase):
     def __init__(self, name):
         super().__init__(name)
-        self._client = None
-
-    def disconnect(self):
-        if self._client:          # (self._client is defined in derived class)
-            self._client.close()
-
-    def activate_devices(self):
-        for slave_id in self._device_types.keys():
-            self.get_logger().info('activating device[slave_id=%d]' % slave_id)
-            self.put_command(CModelCommand(r_sid=slave_id, r_act=0, r_gto=0))
-            time.sleep(0.1)
-            self.put_command(CModelCommand(r_sid=slave_id, r_act=1, r_gto=1))
-            time.sleep(0.1)
-        self.get_logger().info('all devices activated')
 
     def put_command(self, command):
         # Clip each field of command within a valid range.
@@ -151,6 +137,9 @@ class CModelModbusTCP(CModelModbusBase):
             raise
         self.get_logger().info('started[ip=%s]' % ip)
 
+    def disconnect(self):
+        self._client.close()
+
     def _write_registers(self, registers, slave_id):
         with self._lock:
             self._client.write_registers(0, registers, slave_id)
@@ -174,6 +163,9 @@ class CModelModbusRTU(CModelModbusBase):
             self.get_logger().error('failed to connect[dev=%s]' % dev)
             raise
         self.get_logger().info('started[dev=%s]' % dev)
+
+    def disconnect(self):
+        self._client.close()
 
     def _write_registers(self, registers, slave_id):
         with self._lock:

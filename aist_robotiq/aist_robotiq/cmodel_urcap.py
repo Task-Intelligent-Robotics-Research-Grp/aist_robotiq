@@ -35,7 +35,7 @@
 #  Ported to ROS by felixvd
 #  Modified by T.Ueshiba
 #
-import time, socket, threading
+import socket, threading
 from aist_robotiq.cmodel_base import CModelBase
 from aist_robotiq_msgs.msg    import CModelStatus
 
@@ -85,18 +85,20 @@ class CModelURCap(CModelBase):
         """
         self._socket.close()
 
-    def activate_devices(self):
-        pass
-
     def put_command(self, command):
         command = self._clip_command(command)
 
         # Specify target device.
         self._set_var('SID', command.r_sid)
 
+        # Setting zero value to 'ACT' will cause the device reset.
+        if command.r_act == 0:
+            self._set_var('ACT', 0)
+            return
+
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
-        vars = [# ('ACT', command.r_act),
+        vars = [('ACT', command.r_act),
                 ('MOD', command.r_mod),                 # Byte 0
                 ('GTO', command.r_gto),
                 ('ATR', command.r_atr),
