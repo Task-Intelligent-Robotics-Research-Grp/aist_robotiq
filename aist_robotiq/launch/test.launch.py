@@ -67,7 +67,7 @@ def launch_setup(context):
              parameters=[
                  {'gripper_name': LaunchConfiguration('gripper_name')}
              ],
-             prefix=['gnome-terminal --tab --'],
+             prefix=['gnome-terminal --tab --wait --'],
              output='screen'),
         Node(name='rviz', package='rviz2', executable='rviz2',
              output='screen',
