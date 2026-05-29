@@ -54,7 +54,7 @@ def main():
         cmodel.destroy_node()
 
     except Exception as e:
-        print(e)
+        print('*** Terminate the node due to exception: %s' % e)
     finally:
         rclpy.shutdown()
 

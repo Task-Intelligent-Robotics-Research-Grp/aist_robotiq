@@ -91,14 +91,9 @@ class CModelURCap(CModelBase):
         # Specify target device.
         self._set_var('SID', command.r_sid)
 
-        # Setting zero value to 'ACT' will cause the device reset.
-        if command.r_act == 0:
-            self._set_var('ACT', 0)
-            return
-
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
-        vars = [('ACT', command.r_act),
+        vars = [#('ACT', command.r_act),
                 ('MOD', command.r_mod),                 # Byte 0
                 ('GTO', command.r_gto),
                 ('ATR', command.r_atr),

@@ -120,7 +120,7 @@ class SuctionController : public rclcpp::Node
 
                     cmodel_command_t    cmodel_command;
                     cmodel_command.r_sid = _slave_id;
-                    cmodel_command.r_act = 0;
+                    cmodel_command.r_act = 1;
                     cmodel_command.r_gto = 0;
                     _cmodel_command_pub->publish(cmodel_command);
                     rclcpp::sleep_for(100ms);
@@ -177,21 +177,25 @@ class SuctionController : public rclcpp::Node
                 {
                     return status->g_act == 1 && status->g_sta == 3;
                 }
-    static u_int
-                fault(const cmodel_status_cp& status)
+    bool        is_ack(const cmodel_status_cp& status) const
                 {
-                    return status->g_flt;
+                  // Check if the status reflects the latest request.
+                    return status->g_pr == _goal_pr[0];
+                }
+    u_int       fault(const cmodel_status_cp& status) const
+                {
+                    return (is_ack(status) ? status->g_flt : 0);
                 }
     bool        stalled(const cmodel_status_cp& status) const
                 {
-                    return _goal_pr[0] < _goal_pr[1] &&
-                           status->g_pr == _goal_pr[0] &&
+                    return is_ack(status) &&
+                           _goal_pr[0] < _goal_pr[1] &&
                            (status->g_obj == 1 || status->g_obj == 2);
                 }
     bool        released(const cmodel_status_cp& status) const
                 {
-                    return _goal_pr[0] > _goal_pr[1] &&
-                           status->g_pr == _goal_pr[0] &&
+                    return is_ack(status) &&
+                           _goal_pr[0] > _goal_pr[1] &&
                            (status->g_obj == 0 || status->g_obj == 3);
                 }
 
@@ -337,11 +341,11 @@ SuctionController::process_suction_command(const cmodel_status_cp& status)
     auto        result = std::make_unique<suction_command_t::Result>();
     set_result(result, status);
 
-    if (const auto fault_code=fault(status))
+    if (const auto fault_code = fault(status))
     {
         std::string     fault_message;
 
-        switch (fault(status))
+        switch (fault_code)
         {
           case suction_command_t::Result::ACTION_DELAYED:
             fault_message = "action delayed";
@@ -351,6 +355,10 @@ SuctionController::process_suction_command(const cmodel_status_cp& status)
             break;
           case suction_command_t::Result::GRIPPING_TIMEOUT:
             fault_message = "gripping timeout";
+            send_reset_command();
+            break;
+          case suction_command_t::Result::ACTIVATION_BIT_NOT_SET:
+            fault_message = "activation bit(rACT) not set";
             break;
           case suction_command_t::Result::TEMPERATURE:
             fault_message = "maximum temperature";
@@ -366,7 +374,6 @@ SuctionController::process_suction_command(const cmodel_status_cp& status)
                             << fault_message << ']');
         _goal_handle->abort(std::move(result));
         _goal_handle = nullptr;
-        send_reset_command();
         return;
     }
     else if (_goal_handle->is_canceling())
