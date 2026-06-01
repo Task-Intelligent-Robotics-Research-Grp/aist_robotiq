@@ -229,7 +229,7 @@ class RobotiqGripper(SimpleActionClient):
         """
         timeout_sec = 1.0
         return self._param_clnt \
-                   .set_parameters_sync([('velocity', velocity)],
+                   .set_parameters_sync({'velocity': velocity},
                                         timeout_sec=timeout_sec)[0].successful
 
     def set_max_effort(self, max_effort: float) -> None:
