@@ -415,6 +415,7 @@ class GripperController : public rclcpp::Node
 
   private:
   // Read-only parameters
+    const std::string			_driver_ns;
     const int                           _slave_id;
     const array4d                       _min_gap;
     const array4d                       _max_gap;
@@ -463,6 +464,8 @@ class GripperController : public rclcpp::Node
 
 GripperController::GripperController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("gripper_controller", options),
+     _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
+		    this, "driver_ns", "robotiq_grippers_driver")),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
      _min_gap(vector_to_array4d(
@@ -497,14 +500,14 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
      _joint_state(),
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
 
-     _cmodel_command_pub(create_publisher<cmodel_command_t>("/cmodel_command",
-                                                            1)),
+     _cmodel_command_pub(create_publisher<cmodel_command_t>(
+                             _driver_ns + "/cmodel_command", 1)),
 
      _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
                             rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
-                            "/cmodel_status", 1,
+                            _driver_ns + "/cmodel_status", 1,
                             std::bind(&GripperController::cmodel_status_cb,
                                       this, std::placeholders::_1),
                             create_subscription_options(_cmodel_status_cbg))),

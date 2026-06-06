@@ -10,8 +10,9 @@ robotiq_85_driver:
 
 robotiq_85_controller:
   ros__parameters:
-    slave_id: 9
-    joints:   [robotiq_85_finger_joint]
+    driver_ns: $(var driver_ns)
+    slave_id:  9
+    joints:    [robotiq_85_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.085]
     min_gap: [0.000]
@@ -41,8 +42,9 @@ robotiq_140_driver:
 
 robotiq_140_controller:
   ros__parameters:
-    slave_id: 9
-    joints:   [robotiq_140_finger_joint]
+    driver_ns: $(var driver_ns)
+    slave_id:  9
+    joints:    [robotiq_140_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.140]
     min_gap: [0.000]
@@ -72,8 +74,9 @@ robotiq_hande_driver:
 
 robotiq_hande_controller:
   ros__parameters:
-    slave_id: 9
-    joints:   [robotiq_hande_finger_joint]
+    driver_ns: $(var driver_ns)
+    slave_id:  9
+    joints:    [robotiq_hande_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.050]
     min_gap: [0.000]
@@ -103,6 +106,7 @@ robotiq_3f_driver:
 
 robotiq_3f_controller:
   ros__parameters:
+    driver_ns: $(var driver_ns)
     slave_id:  9
     joints:
       - robotiq_3f_middle_finger_joint
@@ -138,7 +142,8 @@ robotiq_epick_driver:
 
 robotiq_epick_controller:
   ros__parameters:
-    slave_id: 9
+    driver_ns: $(var driver_ns)
+    slave_id:  9
 
 #############################################################
 #  Dual gripper configuration with Robotiq 2f-85 and EPick  #
@@ -152,4 +157,5 @@ dual_gripper_driver:
 
 right_epick_controller:
   ros__parameters:
-    slave_id: 2
+    driver_ns: dual_gripper_driver
+    slave_id:  2

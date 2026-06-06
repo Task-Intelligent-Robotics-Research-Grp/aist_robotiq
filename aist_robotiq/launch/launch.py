@@ -28,7 +28,7 @@ launch_arguments = [
     },
     {
         'name':        'driver_ns',
-        'default':     'robotiq_85_driver',
+        'default':     'robotiq_grippers_driver',
         'description': 'name of the driver for Robotiq devices'
     },
     {
@@ -79,7 +79,6 @@ def declare_launch_arguments(args):
             for arg in args]
 
 def launch_setup(context):
-
     param_file = ParameterFile(LaunchConfiguration('param_file'),
                                allow_substs=True)
     composable_nodes = []
@@ -93,14 +92,6 @@ def launch_setup(context):
                            package='aist_robotiq',
                            plugin=PLUGINS[gripper_type],
                            parameters=[param_file],
-                           remappings=[
-                               ('/cmodel_status',
-                                [LaunchConfiguration('driver_ns'),
-                                 '/cmodel_status']),
-                               ('/cmodel_command',
-                                [LaunchConfiguration('driver_ns'),
-                                 '/cmodel_command'])
-                           ],
                            extra_arguments=[
                                {'use_intra_process_comms': True}
                            ]))

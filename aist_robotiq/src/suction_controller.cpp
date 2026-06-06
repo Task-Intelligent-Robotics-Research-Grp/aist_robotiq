@@ -201,6 +201,7 @@ class SuctionController : public rclcpp::Node
 
   private:
   // Read-only parameters
+    const std::string			_driver_ns;
     const int                           _slave_id;
 
   // Publisher for command to the driver
@@ -223,17 +224,19 @@ class SuctionController : public rclcpp::Node
 
 SuctionController::SuctionController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("suction_controller", options),
+     _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
+		    this, "driver_ns", "robotiq_grippers_driver")),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
 
-     _cmodel_command_pub(create_publisher<cmodel_command_t>("/cmodel_command",
-                                                            1)),
+     _cmodel_command_pub(create_publisher<cmodel_command_t>(
+                             _driver_ns + "/cmodel_command", 1)),
 
      _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
                             rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
-                            "/cmodel_status", 1,
+                            _driver_ns + "/cmodel_status", 1,
                             std::bind(&SuctionController::cmodel_status_cb,
                                       this, std::placeholders::_1),
                             create_subscription_options(_cmodel_status_cbg))),
