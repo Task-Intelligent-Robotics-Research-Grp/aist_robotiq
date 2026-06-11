@@ -93,12 +93,10 @@ class TestDualGripperClient(Node):
                 print(result)
             elif key == 'gv':
                 velocity = float(input('  velocity: '))
-                success = self._gripper.set_velocity(velocity)
-                print('%s to set velocity'
-                      % ('succeeded' if success else 'failed'))
+                success = self._gripper.set_parameters({'velocity': velocity})
             elif key == 'ge':
                 max_effort = float(input('  maximum effort: '))
-                self._gripper.parameters['max_effort'] = max_effort
+                self._gripper.set_parameters({'max_effort': max_effort})
 
             elif key == 'sg':
                 self._suction.grasp()
@@ -108,8 +106,8 @@ class TestDualGripperClient(Node):
                 pressure = float(input('  pressure: '))
                 self._suction.suck(pressure, timeout_sec=0.0)
             elif key == 'st':
-                grasp_timeout = float(input('  grasp_timeout: '))
-                self._suction.parameters['grasp_timeout'] = grasp_timeout
+                grasp_timeout = float(input('  grasp timeout: '))
+                self._suction.set_parameters({'grasp_timeout': grasp_timeout})
             elif key == 'sc':
                 self._suction.cancel_goal()
             elif key == 'sw':

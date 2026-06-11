@@ -36,7 +36,6 @@ from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
 from action_msgs.msg              import GoalStatus
 from control_msgs.action          import GripperCommand
 from control_msgs.msg             import GripperCommand as GripperCommandMsg
-from aist_robotiq_msgs.action     import SetMode
 from aist_robotiq_msgs.action     import SuctionCommand
 from aist_robotiq_msgs.msg        import SuctionCommand as SuctionCommandMsg
 from task_wrappers.action_client  import SimpleActionClient
@@ -51,6 +50,12 @@ from typing                       import Optional
 class RobotiqGripper(SimpleActionClient):
     """ Action client of the controller for Robotiq grippers.
     """
+
+    _RemoteParams = (
+        'velocity', 'mode',
+        'individual_control_fingers', 'individual_control_scissor',
+    )
+
     def __init__(self, node: Node, name: str='a_bot_gripper'):
         """
         Args:
@@ -67,14 +72,6 @@ class RobotiqGripper(SimpleActionClient):
         super().__init__(node, GripperCommand, controller_ns + '/command',
                          callback_group=self._cbg)
 
-        # Create action client for switching mode.
-        self._mode = SetMode.Goal.BASIC
-        self._individual_control_fingers = True
-        self._individual_control_scissor = True
-        self._set_mode = SimpleActionClient(node, SetMode,
-                                            controller_ns + '/set_mode',
-                                            callback_group=self._cbg)
-
         # Create parameter client for setting/getting controller parameters.
         self._param_clnt = ParameterClient(node, controller_ns)
 
@@ -89,7 +86,7 @@ class RobotiqGripper(SimpleActionClient):
         # Initialize parameter dictionary with initial max_effort value.
         # Other parameters, 'grasp_position' and 'release_position',
         # will be obtained from the controller on demand.
-        self._parameters = {'max_effort': 0.0}
+        self._local_params = {'max_effort': 0.0}
 
     @property
     def name(self) -> str:
@@ -121,11 +118,29 @@ class RobotiqGripper(SimpleActionClient):
     def parameters(self) -> dict:
         """ Dictionary of gripper parameters.
         """
-        if 'grasp_position' not in self._parameters:
+        if 'grasp_position' not in self._local_params:
             self._get_controller_parameters()
-            self._parameters['grasp_position']   = self._min_gap[0]
-            self._parameters['release_position'] = self._max_gap[0]
-        return self._parameters
+            self._local_params['grasp_position']   = self._min_gap[0]
+            self._local_params['release_position'] = self._max_gap[0]
+
+        timeout_sec = 10.0
+        values = self._param_clnt \
+                     .get_parameters_sync(RobotiqGripper._RemoteParams,
+                                          timeout_sec=timeout_sec)
+        remote_params = dict(zip(RobotiqGripper._RemoteParams, values))
+        return self._local_params | remote_params
+
+    def set_parameters(self, params: dict):
+        self._local_params |= dict(filter(lambda item: item[0]
+                                          not in RobotiqGripper._RemoteParams,
+                                          params.items()))
+
+        remote_params = dict(filter(lambda item: item[0]
+                                    in RobotiqGripper._RemoteParams,
+                                    params.items()))
+        timeout_sec = 1.0
+        self._param_clnt.set_parameters_sync(remote_params,
+                                             timeout_sec=timeout_sec)
 
     def pregrasp(self) -> None:
         """ Move to release position and return immediatelty.
@@ -218,62 +233,6 @@ class RobotiqGripper(SimpleActionClient):
             result.position = self._gap(result.position)
         return status, result
 
-    def set_velocity(self, velocity: float) -> None:
-        """ Set finger velocity value to the gripper.
-
-        Args:
-          velocity: Desired velocity.
-
-        Returns:
-          bool: `True` iff success.
-        """
-        timeout_sec = 1.0
-        return self._param_clnt \
-                   .set_parameters_sync({'velocity': velocity},
-                                        timeout_sec=timeout_sec)[0].successful
-
-    def set_max_effort(self, max_effort: float) -> None:
-        """ Set maximum effort to be applied when grasping.
-
-        Args:
-          max_effort: Maximum effort to be applied when grasping.
-        """
-        self._parameters['max_effort'] = max_effort
-
-    def set_mode(self, mode: int,
-                 *,
-                 individual_control_fingers: bool=False,
-                 individual_control_scissor: bool=False,
-                 timeout_sec: Optional[float]=None) -> bool:
-        """ Set operation mode of the gripper.
-        This fuction is effective only for Robotiq-3F grippers.
-
-        Args:
-          mode: Grasp mode of Robotiq-3F gripper.
-            Possible values are `SetMode.Goal.[BASIC|PINCH|WIDE|SCISSOR]`.
-          individual_control_fingers: True if each finger is individually
-            controlled.
-          individual_control_scissor: True if scissor is controlled independent
-            from fingers.
-
-        Returns:
-          bool: True if success. False if failure.
-        """
-        status, result \
-            = self._set_mode.send_goal(
-                  SetMode.Goal(
-                      mode=mode,
-                      individual_control_fingers=individual_control_fingers,
-                      individual_control_scissor=individual_control_scissor),
-                  timeout_sec=timeout_sec)
-        if status == GoalStatus.STATUS_SUCCEEDED and result.success:
-            self._mode = mode
-            self._individual_control_fingers = individual_control_fingers
-            self._individual_control_scissor = individual_control_scissor
-            return True
-        else:
-            return False
-
     def _get_controller_parameters(self) -> None:
         timeout_sec = 10.0
         values = self._param_clnt.get_parameters_sync(['min_gap', 'max_gap',
@@ -363,6 +322,9 @@ class RobotiqSuction(SimpleActionClient):
         """ Dictionary of gripper parameters.
         """
         return self._parameters
+
+    def set_parameters(self, params: dict):
+        self._parameters |= params
 
     def pregrasp(self) -> None:
         """ Suck forever and return immediately.

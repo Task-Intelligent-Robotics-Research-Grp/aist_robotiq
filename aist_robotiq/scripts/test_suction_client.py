@@ -98,7 +98,7 @@ class TestSuctionClient(Node):
                 print(result)
             elif key == 't':
                 grasp_timeout = float(input('  grasp timeout: '))
-                self._gripper.parameters['grasp_timeout'] = grasp_timeout
+                self._gripper.set_parameters({'grasp_timeout': grasp_timeout})
             elif key=='q':
                 break
             else:

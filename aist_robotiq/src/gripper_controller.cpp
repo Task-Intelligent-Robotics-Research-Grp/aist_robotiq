@@ -42,7 +42,6 @@
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <aist_robotiq_msgs/msg/c_model_status.hpp>
 #include <aist_robotiq_msgs/msg/c_model_command.hpp>
-#include <aist_robotiq_msgs/action/set_mode.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include <Eigen/Core>
 
@@ -99,11 +98,11 @@ class GripperController : public rclcpp::Node
     using joint_state_t         = sensor_msgs::msg::JointState;
     using float64_multi_array_t = std_msgs::msg::Float64MultiArray;
     using gripper_command_t     = control_msgs::action::GripperCommand;
-    using set_mode_t            = aist_robotiq_msgs::action::SetMode;
     using goal_uuid_t           = rclcpp_action::GoalUUID;
     using goal_response_t       = rclcpp_action::GoalResponse;
     using cancel_response_t     = rclcpp_action::CancelResponse;
     using callback_group_p      = rclcpp::CallbackGroup::SharedPtr;
+    using ddr_t                 = ddynamic_reconfigure2::DDynamicReconfigure<>;
 
     template <class MSG>
     using msg_p         = typename MSG::UniquePtr;
@@ -111,12 +110,6 @@ class GripperController : public rclcpp::Node
     using pub_p         = typename rclcpp::Publisher<MSG>::SharedPtr;
     template <class MSG>
     using sub_p         = typename rclcpp::Subscription<MSG>::SharedPtr;
-    template <class SRV>
-    using srv_p         = typename rclcpp::Service<SRV>::SharedPtr;
-    template <class SRV>
-    using req_cp        = typename SRV::Request::ConstSharedPtr;
-    template <class SRV>
-    using res_p         = typename SRV::Response::SharedPtr;
     template <class ACT>
     using action_p      = typename rclcpp_action::Server<ACT>::SharedPtr;
     template <class ACT>
@@ -129,6 +122,8 @@ class GripperController : public rclcpp::Node
     using result_p      = std::unique_ptr<typename ACT::Result>;
     template <class ACT>
     using feedback_p    = std::unique_ptr<typename ACT::Feedback>;
+
+    enum Mode   { BASIC = 0, PINCH = 1, WIDE = 2, SCISSOR = 3};
 
   public:
                 GripperController(const rclcpp::NodeOptions& options)   ;
@@ -154,19 +149,17 @@ class GripperController : public rclcpp::Node
 
   // GripperCommand action stuffs
     goal_response_t
-                gripper_command_goal_cb(const goal_uuid_t&,
-                                        goal_cp<gripper_command_t> goal);
-    void        gripper_command_handle_accepted_cb(
+                goal_cb(const goal_uuid_t&,
+                        goal_cp<gripper_command_t> goal)                ;
+    void        handle_accepted_cb(
                     goal_handle_p<gripper_command_t> goal_handle)       ;
     cancel_response_t
-                gripper_command_cancel_cb(
-                    goal_handle_p<gripper_command_t>)                   ;
+                cancel_cb(goal_handle_p<gripper_command_t>)             ;
     void        process_gripper_command(const cmodel_status_cp& status) ;
-    void        set_gripper_command_result(
-                    const result_p<gripper_command_t>& result,
-                    const cmodel_status_cp& status) const
+    void        set_result(const result_p<gripper_command_t>& result,
+                           const cmodel_status_cp& status) const
                 {
-                    const auto i = (_mode == set_mode_t::Goal::SCISSOR ? 3 : 0);
+                    const auto i = (_mode == SCISSOR ? 3 : 0);
 
                     result->position     = actual_position(status)[i];
                     result->effort       = actual_effort(status)[i];
@@ -174,24 +167,10 @@ class GripperController : public rclcpp::Node
                     result->reached_goal = reached_goal(status);
                 }
 
-  // SetMode action stuffs
-    goal_response_t
-                set_mode_goal_cb(const goal_uuid_t&,
-                                 goal_cp<set_mode_t> goal)              ;
-    cancel_response_t
-                set_mode_cancel_cb(goal_handle_p<set_mode_t>)           ;
-    void        set_mode_handle_accepted_cb(
-                    goal_handle_p<set_mode_t> goal_handle)              ;
-    void        process_set_mode(const cmodel_status_cp& status)        ;
-    void        send_set_mode_command(u_int mode,
-                                      bool individual_control_fingers,
-                                      bool individual_control_scissor)
+  // Setting grasp mode struffs
+    void        set_mode(int mode)                                      ;
+    void        send_set_mode_command(int mode)
                 {
-                    using namespace     std::chrono_literals;
-
-                    _individual_control_fingers = individual_control_fingers;
-                    _individual_control_scissor = individual_control_scissor;
-
                     if (mode == _mode)
                         return;
                     _mode = mode;
@@ -214,7 +193,7 @@ class GripperController : public rclcpp::Node
                 }
     array4d     goal_velocity() const
                 {
-                    return array4d{get_parameter("velocity").as_double()};
+                    return array4d{_velocity};
                 }
     static array4d
                 goal_effort(const goal_cp<gripper_command_t>& goal)
@@ -265,10 +244,10 @@ class GripperController : public rclcpp::Node
                     cmodel_command->r_mod = _mode;
                     cmodel_command->r_gto = 1;
                     cmodel_command->r_icf = (_individual_control_fingers ? 1
-                                                                          : 0);
+                                                                         : 0);
                     cmodel_command->r_ics = (_individual_control_scissor ? 1
-                                                                          : 0);
-                    if (_mode == set_mode_t::Goal::SCISSOR)
+                                                                         : 0);
+                    if (_mode == SCISSOR)
                     {
                         cmodel_command->r_pr = pos[3];
                         cmodel_command->r_sp = vel[3];
@@ -338,7 +317,7 @@ class GripperController : public rclcpp::Node
                   // the requested position, _goal_pos, because status->g_pr
                   // does not correctly reflects the requested position in
                   // cmodel_status_cb() until send_move_command() called
-                  // after the goal accepted in gripper_command_goal_cb().
+                  // after the goal accepted in goal_cb().
                     if (_individual_control_fingers)
                     {
                         const auto ret = status->g_pr  == _goal_pos[0] &&
@@ -352,7 +331,7 @@ class GripperController : public rclcpp::Node
                                (status->g_dts == 1 || status->g_dts == 2);
                     }
 
-                    if (_mode == set_mode_t::Goal::SCISSOR)
+                    if (_mode == SCISSOR)
                         return status->g_prs == _goal_pos[3] &&
                                (status->g_dts == 1 || status->g_dts == 2);
                     else
@@ -361,7 +340,7 @@ class GripperController : public rclcpp::Node
                 }
     bool        reached_goal(const cmodel_status_cp& status) const
                 {
-                    if (_mode == set_mode_t::Goal::SCISSOR)
+                    if (_mode == SCISSOR)
                         return status->g_prs == _goal_pos[3] &&
                                status->g_dts == 3;
                     else
@@ -371,6 +350,10 @@ class GripperController : public rclcpp::Node
     static bool is_activating(const cmodel_status_cp& status)
                 {
                     return status->g_act == 1 && status->g_sta == 1;
+                }
+    static bool is_changing_mode(const cmodel_status_cp& status)
+                {
+                    return status->g_act == 1 && status->g_sta == 2;
                 }
     static bool is_moving(const cmodel_status_cp& status)
                 {
@@ -426,6 +409,13 @@ class GripperController : public rclcpp::Node
     const array4d                       _min_effort;
     const array4d                       _max_effort;
 
+  // Variable parameters
+    double                              _velocity;
+    int                                 _mode;
+    bool                                _individual_control_fingers;
+    bool                                _individual_control_scissor;
+    ddr_t                               _ddr;
+
   // Position parameters to be calibrated
     array4i                             _min_pos;
     array4i                             _max_pos;
@@ -448,17 +438,9 @@ class GripperController : public rclcpp::Node
 
   // GripperCommand action stuffs
     array4i                             _goal_pos;
-    const callback_group_p              _action_command_cbg;
+    const callback_group_p              _gripper_command_cbg;
     const action_p<gripper_command_t>   _gripper_command_srv;
-    goal_handle_p<gripper_command_t>    _gripper_command_goal_handle;
-
-  // SetMode action stuffs
-    u_int                               _mode;
-    bool                                _individual_control_fingers;
-    bool                                _individual_control_scissor;
-    const action_p<set_mode_t>          _set_mode_srv;
-    goal_handle_p<set_mode_t>           _set_mode_goal_handle;
-
+    goal_handle_p<gripper_command_t>    _goal_handle;
     std::mutex                          _goal_mtx;
 };
 
@@ -493,6 +475,12 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                      ddynamic_reconfigure2::declare_read_only_parameter(
                          this, "max_effort", vector_t{235.0}))),
 
+     _velocity(0.5*(_min_velocity[0] + _max_velocity[0])),
+     _mode(BASIC),
+     _individual_control_fingers(false),
+     _individual_control_scissor(false),
+     _ddr(rclcpp::Node::SharedPtr(this)),
+
      _min_pos(),
      _max_pos(),
      _calibration_step(0),
@@ -519,49 +507,40 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
                                    this, std::placeholders::_1))),
 
      _goal_pos{0},
-     _action_command_cbg(create_callback_group(
+     _gripper_command_cbg(create_callback_group(
                              rclcpp::CallbackGroupType::MutuallyExclusive)),
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
                               this, "~/command",
-                              std::bind(
-                                  &GripperController::gripper_command_goal_cb,
-                                  this,
-                                  std::placeholders::_1,
-                                  std::placeholders::_2),
-                              std::bind(
-                                  &GripperController::
-                                  gripper_command_cancel_cb,
-                                  this, std::placeholders::_1),
-                              std::bind(
-                                  &GripperController::
-                                  gripper_command_handle_accepted_cb,
-                                  this, std::placeholders::_1),
+                              std::bind(&GripperController::goal_cb,
+                                        this,
+                                        std::placeholders::_1,
+                                        std::placeholders::_2),
+                              std::bind(&GripperController::cancel_cb,
+                                        this, std::placeholders::_1),
+                              std::bind(&GripperController::handle_accepted_cb,
+                                        this, std::placeholders::_1),
                               rcl_action_server_get_default_options(),
-                              _action_command_cbg)),
-     _gripper_command_goal_handle(nullptr),
-
-     _mode(set_mode_t::Goal::BASIC),
-     _individual_control_fingers(false),
-     _individual_control_scissor(false),
-     _set_mode_srv(rclcpp_action::create_server<set_mode_t>(
-                       this, "~/set_mode",
-                       std::bind(&GripperController::set_mode_goal_cb,
-                                 this,
-                                 std::placeholders::_1, std::placeholders::_2),
-                       std::bind(&GripperController::set_mode_cancel_cb,
-                                 this, std::placeholders::_1),
-                       std::bind(&GripperController::
-                                 set_mode_handle_accepted_cb,
-                                 this, std::placeholders::_1),
-                       rcl_action_server_get_default_options(),
-                       _action_command_cbg)),
-     _set_mode_goal_handle(nullptr),
-
+                              _gripper_command_cbg)),
+     _goal_handle(nullptr),
      _goal_mtx()
 {
     using namespace     std::chrono_literals;
 
-    declare_parameter("velocity", 0.5*(_min_velocity[0] + _max_velocity[0]));
+  // Varibale parameters
+    _ddr.registerVariable<double>("velocity", &_velocity, "finger velocity",
+                                  {_min_velocity[0], _max_velocity[0]});
+    _ddr.registerEnumVariable<int>("mode", BASIC,
+                                   std::bind(&GripperController::set_mode,
+                                             this, std::placeholders::_1),
+                                   "grasp mode",
+                                   {{"Basic", BASIC}, {"Pinch",   PINCH},
+                                    {"Wide",  WIDE},  {"Scissor", SCISSOR}});
+    _ddr.registerVariable<bool>("individual_control_fingers",
+                                &_individual_control_fingers,
+                                "control each finger individually");
+    _ddr.registerVariable<bool>("individual_control_scissor",
+                                &_individual_control_scissor,
+                                "control scissor joint individually");
 
     _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
                             this, "joints",
@@ -618,7 +597,7 @@ GripperController::process_calibration(const cmodel_status_cp& status)
             ++_calibration_step;
         break;
       case 4:
-        send_set_mode_command(set_mode_t::Goal::SCISSOR, false, false);
+        send_set_mode_command(SCISSOR);
         RCLCPP_INFO_STREAM(get_logger(),
                            "calibration step 4: switch to scissor mode");
         ++_calibration_step;
@@ -640,7 +619,7 @@ GripperController::process_calibration(const cmodel_status_cp& status)
         _min_pos[3] = pos(status)[3];       // record at full-close
         RCLCPP_INFO_STREAM(get_logger(), "calibration step 7: sissor pos["
                            << _min_pos[3] << "]@full-close");
-        send_set_mode_command(set_mode_t::Goal::BASIC, false, false);
+        send_set_mode_command(BASIC);
         ++_calibration_step;
         break;
       case 8:
@@ -689,17 +668,79 @@ GripperController::cmodel_status_cb(const cmodel_status_cp& status)
 
     const std::lock_guard<std::mutex>   lock(_goal_mtx);
 
-  // If the goal of SetMode is active, process it and return.
-    if (_set_mode_goal_handle && _set_mode_goal_handle->is_active())
+  // Return immediately if changing mode is in progress.
+    if (is_changing_mode(status))
+        return;
+
+  // If the goal of GripperCommand is active, process it.
+    if (!_goal_handle ||
+        !_goal_handle->is_active())
+        return;
+
+    // std::cerr << "g_obj=" << int(status->g_obj)
+    //           << ", g_dt=[" << int(status->g_dta)
+    //           << ',' << int(status->g_dtb)
+    //           << ',' << int(status->g_dtc)
+    //           << ',' << int(status->g_dts)
+    //           << "], g_po=[" << int(status->g_po)
+    //           << ',' << int(status->g_pob)
+    //           << ',' << int(status->g_poc)
+    //           << ',' << int(status->g_pos)
+    //           << "], g_pr=[" << int(status->g_pr)
+    //           << ',' << int(status->g_prb)
+    //           << ',' << int(status->g_prc)
+    //           << ',' << int(status->g_prs)
+    //           << "], goal_pos=[" << _goal_pos[0]
+    //           << ',' << _goal_pos[1]
+    //           << ',' << _goal_pos[2]
+    //           << ',' << _goal_pos[3]
+    //           << ']' <<std::endl;
+
+    _cmodel_status = status;  // Keep the latest status for aborting the goal.
+
+    auto        result = std::make_unique<gripper_command_t::Result>();
+    set_result(result, status);
+
+    if (fault(status))  // Check if any fault occured in the driver.
     {
-        process_set_mode(status);
+        RCLCPP_ERROR_STREAM(get_logger(),
+                            "GripperCommand goal ABORTED[fault_code="
+                            << fault(status) << ']');
+        _goal_handle->abort(std::move(result));
+        _goal_handle = nullptr;
+        send_reset_command();
+        return;
+    }
+    else if (_goal_handle->is_canceling())
+    {
+        RCLCPP_WARN_STREAM(get_logger(), "GripperCommand goal CANCELED");
+        send_stop_command();
+        _goal_handle->canceled(std::move(result));
+        _goal_handle = nullptr;
+        return;
+    }
+    else if (result->reached_goal || result->stalled)
+    {
+        RCLCPP_INFO_STREAM(get_logger(),
+                           "GripperCommand goal SUCCEEDED[position="
+                           << result->position
+                           << ", effort=" << result->effort
+                           << ", reached_goal=" << std::boolalpha
+                           << result->reached_goal
+                           << ", stalled=" << std::boolalpha << result->stalled
+                           << ']');
+        _goal_handle->succeed(std::move(result));
+        _goal_handle = nullptr;
         return;
     }
 
-  // If the goal of GripperCommand is active, process it.
-    if (_gripper_command_goal_handle &&
-        _gripper_command_goal_handle->is_active())
-        process_gripper_command(status);
+  // Publish speed and filtered current as a feedback.
+    auto        feedback = std::make_unique<gripper_command_t::Feedback>();
+    feedback->position     = result->position;
+    feedback->effort       = result->effort;
+    feedback->stalled      = result->stalled;
+    feedback->reached_goal = result->reached_goal;
+    _goal_handle->publish_feedback(std::move(feedback));
 }
 
 /*
@@ -731,8 +772,7 @@ GripperController::position_command_cb(msg_p<float64_multi_array_t> command)
  *  GripperCommand action stuffs
  */
 GripperController::goal_response_t
-GripperController::gripper_command_goal_cb(const goal_uuid_t&,
-                                           goal_cp<gripper_command_t> goal)
+GripperController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t> goal)
 {
     const std::lock_guard<std::mutex>   lock(_goal_mtx);
 
@@ -742,8 +782,7 @@ GripperController::gripper_command_goal_cb(const goal_uuid_t&,
                             "GripperCommand goal REJECTED: calibration in progress");
         return goal_response_t::REJECT;
     }
-    else if (_set_mode_goal_handle != nullptr &&
-             _set_mode_goal_handle->is_active())
+    else if (_goal_handle != nullptr && _goal_handle->is_active())
     {
         RCLCPP_ERROR_STREAM(get_logger(),
                             "GripperCommand goal REJECTED because setting mode in progress");
@@ -764,24 +803,24 @@ GripperController::gripper_command_goal_cb(const goal_uuid_t&,
 }
 
 void
-GripperController::gripper_command_handle_accepted_cb(
+GripperController::handle_accepted_cb(
     goal_handle_p<gripper_command_t> goal_handle)
 {
     const std::lock_guard<std::mutex>   lock(_goal_mtx);
 
   // If any active goal exists, abort it.
-    if (_gripper_command_goal_handle != nullptr &&
-        _gripper_command_goal_handle->is_active())
+    if (_goal_handle != nullptr &&
+        _goal_handle->is_active())
     {
         RCLCPP_WARN_STREAM(get_logger(),
                            "previous GripperCommand goal ABORTED");
 
         auto    result = std::make_unique<gripper_command_t::Result>();
-        set_gripper_command_result(result, _cmodel_status);
-        _gripper_command_goal_handle->abort(std::move(result));
-        _gripper_command_goal_handle = nullptr;
+        set_result(result, _cmodel_status);
+        _goal_handle->abort(std::move(result));
+        _goal_handle = nullptr;
     }
-    _gripper_command_goal_handle = goal_handle;
+    _goal_handle = goal_handle;
 
   // Send a move command to the gripper.
     _goal_pos = send_move_command(goal_position(goal_handle->get_goal()),
@@ -790,173 +829,48 @@ GripperController::gripper_command_handle_accepted_cb(
 }
 
 GripperController::cancel_response_t
-GripperController::gripper_command_cancel_cb(goal_handle_p<gripper_command_t>)
+GripperController::cancel_cb(goal_handle_p<gripper_command_t>)
 {
     RCLCPP_DEBUG_STREAM(get_logger(),
                         "request for cancelling GripperCommand goal accepted");
     return cancel_response_t::ACCEPT;
 }
 
-void
-GripperController::process_gripper_command(const cmodel_status_cp& status)
-{
-    // std::cerr << "g_obj=" << int(status->g_obj)
-    //           << ", g_dt=[" << int(status->g_dta)
-    //           << ',' << int(status->g_dtb)
-    //           << ',' << int(status->g_dtc)
-    //           << ',' << int(status->g_dts)
-    //           << "], g_po=[" << int(status->g_po)
-    //           << ',' << int(status->g_pob)
-    //           << ',' << int(status->g_poc)
-    //           << ',' << int(status->g_pos)
-    //           << "], g_pr=[" << int(status->g_pr)
-    //           << ',' << int(status->g_prb)
-    //           << ',' << int(status->g_prc)
-    //           << ',' << int(status->g_prs)
-    //           << "], goal_pos=[" << _goal_pos[0]
-    //           << ',' << _goal_pos[1]
-    //           << ',' << _goal_pos[2]
-    //           << ',' << _goal_pos[3]
-    //           << ']' <<std::endl;
-
-    _cmodel_status = status;  // Keep the latest status for aborting the goal.
-
-    auto        result = std::make_unique<gripper_command_t::Result>();
-    set_gripper_command_result(result, status);
-
-    if (fault(status))  // Check if any fault occured in the driver.
-    {
-        RCLCPP_ERROR_STREAM(get_logger(),
-                            "GripperCommand goal ABORTED[fault_code="
-                            << fault(status) << ']');
-        _gripper_command_goal_handle->abort(std::move(result));
-        _gripper_command_goal_handle = nullptr;
-        send_reset_command();
-        return;
-    }
-    else if (_gripper_command_goal_handle->is_canceling())
-    {
-        RCLCPP_WARN_STREAM(get_logger(), "GripperCommand goal CANCELED");
-        send_stop_command();
-        _gripper_command_goal_handle->canceled(std::move(result));
-        _gripper_command_goal_handle = nullptr;
-        return;
-    }
-    else if (result->reached_goal || result->stalled)
-    {
-        RCLCPP_INFO_STREAM(get_logger(),
-                           "GripperCommand goal SUCCEEDED[position="
-                           << result->position
-                           << ", effort=" << result->effort
-                           << ", reached_goal=" << std::boolalpha
-                           << result->reached_goal
-                           << ", stalled=" << std::boolalpha << result->stalled
-                           << ']');
-        _gripper_command_goal_handle->succeed(std::move(result));
-        _gripper_command_goal_handle = nullptr;
-        return;
-    }
-
-  // Publish speed and filtered current as a feedback.
-    auto        feedback = std::make_unique<gripper_command_t::Feedback>();
-    feedback->position     = result->position;
-    feedback->effort       = result->effort;
-    feedback->stalled      = result->stalled;
-    feedback->reached_goal = result->reached_goal;
-    _gripper_command_goal_handle->publish_feedback(std::move(feedback));
-}
-
 /*
- *  SetMode action stuffs
+ *  Set grasp mode stuffs
  */
-GripperController::goal_response_t
-GripperController::set_mode_goal_cb(const goal_uuid_t&,
-                                    goal_cp<set_mode_t> goal)
+void
+GripperController::set_mode(int mode)
 {
+    if (mode == _mode)
+        return;
+
     const std::lock_guard<std::mutex>   lock(_goal_mtx);
 
     if (_calibration_step)
     {
         RCLCPP_ERROR_STREAM(get_logger(),
-                            "SetMode goal REJECTED: calibration not completed!");
-        return goal_response_t::REJECT;
+                            "Cannnot change grasp mode because calibration has not completed!");
+        return;
     }
     else if (dof() != 4)
     {
         RCLCPP_ERROR_STREAM(get_logger(),
-                            "SetMode goal REJECTED: not a Robotiq-3F gripper!");
-        return goal_response_t::REJECT;
+                            "Cannot change grasp mode because the gripper type is not Robotiq-3F!");
+        return;
     }
-    else if (_gripper_command_goal_handle != nullptr &&
-             _gripper_command_goal_handle->is_active())
+    else if (_goal_handle != nullptr &&
+             _goal_handle->is_active())
     {
         RCLCPP_WARN_STREAM(get_logger(),
-                           "GripperCommand goal ABORTED: SetMode goal received!");
+                           "GripperCommand goal ABORTED: Changing grasp mode requested!");
         auto    result = std::make_unique<gripper_command_t::Result>();
-        set_gripper_command_result(result, _cmodel_status);
-        _gripper_command_goal_handle->abort(std::move(result));
-        _gripper_command_goal_handle = nullptr;
+        set_result(result, _cmodel_status);
+        _goal_handle->abort(std::move(result));
+        _goal_handle = nullptr;
     }
 
-    RCLCPP_INFO_STREAM(get_logger(), "SetMode goal ACCEPTED[mode="
-                       << int(goal->mode) << ']');
-    return goal_response_t::ACCEPT_AND_EXECUTE;
-}
-
-void
-GripperController::set_mode_handle_accepted_cb(
-    goal_handle_p<set_mode_t> goal_handle)
-{
-    const std::lock_guard<std::mutex>   lock(_goal_mtx);
-
-  // If any active goal exists, abort it.
-    if (_set_mode_goal_handle != nullptr &&
-        _set_mode_goal_handle->is_active())
-    {
-        RCLCPP_WARN_STREAM(get_logger(), "previous SetMode goal ABORTED");
-
-        auto    result = std::make_unique<set_mode_t::Result>();
-        result->success = false;
-        _set_mode_goal_handle->abort(std::move(result));
-        _set_mode_goal_handle = nullptr;
-    }
-    _set_mode_goal_handle = goal_handle;
-
-    send_set_mode_command(goal_handle->get_goal()->mode,
-                          goal_handle->get_goal()->individual_control_fingers,
-                          goal_handle->get_goal()->individual_control_scissor);
-}
-
-GripperController::cancel_response_t
-GripperController::set_mode_cancel_cb(goal_handle_p<set_mode_t>)
-{
-    RCLCPP_DEBUG_STREAM(get_logger(), "SetMode goal cannot be canceled");
-    return cancel_response_t::REJECT;
-}
-
-void
-GripperController::process_set_mode(const cmodel_status_cp& status)
-{
-    if (fault(status))  // Check if any fault occured in the driver.
-    {
-        RCLCPP_ERROR_STREAM(get_logger(), "SetMode goal ABORTED[fault_code="
-                            << fault(status) << ']');
-        auto    result = std::make_unique<set_mode_t::Result>();
-        result->success = false;
-        _set_mode_goal_handle->abort(std::move(result));
-        _set_mode_goal_handle = nullptr;
-        send_reset_command();
-    }
-    else if (is_ready(status))
-    {
-        RCLCPP_INFO_STREAM(get_logger(),
-                           "SetMode goal SUCCEEDED[mode=" << _mode << ']');
-
-        auto    result = std::make_unique<set_mode_t::Result>();
-        result->success = true;
-        _set_mode_goal_handle->succeed(std::move(result));
-        _set_mode_goal_handle = nullptr;
-    }
+    send_set_mode_command(mode);
 }
 }       // namespace aist_robotiq
 
