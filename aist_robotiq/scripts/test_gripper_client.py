@@ -69,6 +69,7 @@ class TestGripperClient(Node):
             print('  v:         Set gripper velocity')
             print('  m:         Switch mode')
             print('  e:         Set maximum effort to be applied')
+            print('  p:         Show gripper parameters')
             print('  q:         Quit\n')
 
             key = input('>> ')
@@ -87,11 +88,13 @@ class TestGripperClient(Node):
                 velocity = float(input('  velocity: '))
                 self._gripper.set_parameters({'velocity': velocity})
             elif key == 'm':
-                mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
+                mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR): '))
                 self._gripper.set_parameters({'mode': mode})
             elif key == 'e':
                 max_effort = float(input('  maximum effort: '))
                 self._gripper.set_parameters({'max_effort': max_effort})
+            elif key == 'p':
+                print(self._gripper.parameters)
             elif key=='q':
                 break
             else:

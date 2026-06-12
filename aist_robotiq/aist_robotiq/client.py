@@ -131,6 +131,21 @@ class RobotiqGripper(SimpleActionClient):
         return self._local_params | remote_params
 
     def set_parameters(self, params: dict):
+        """ Set gripper parameters.
+
+        Args:
+          params: Dictionary of gripper parameters. Effective keys are
+          - 'max_effort': Maximum effort in Newton applied when grasping.
+          - 'grasp_position': Gap between fingers in meters when grasping.
+          - 'release_position': Gap between fingers in meters when releasing.
+          - 'velocity': Finger velocity
+          - 'mode': Grasping mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR).
+            Effective only for Robotiq-3F gripper.
+          - 'individual_control_fingers': Control each finger independently,
+            if `True`. Effective only for Robotiq-3F gripper.
+          - 'individual_control_scissor': Control scissor independently,
+            if `True`. Effective only for Robotiq-3F gripper.
+        """
         self._local_params |= dict(filter(lambda item: item[0]
                                           not in RobotiqGripper._RemoteParams,
                                           params.items()))
@@ -259,7 +274,7 @@ class RobotiqGripper(SimpleActionClient):
              / (self._max_gap[idx]      - self._min_gap[idx])
 
     def _idx(self) -> int:
-        return 3 if self._mode == SetMode.Goal.SCISSOR else 0
+        return 3 if self.parameters['mode'] == 3 else 0
 
 #************************************************************************
 #  class RobotiqSuction                                                 *
