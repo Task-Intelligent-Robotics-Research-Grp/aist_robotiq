@@ -53,7 +53,7 @@ class CModelURCap(CModelBase):
         """ Constructor
         """
         super().__init__(name)
-        ip = self.declare_parameter('ip', '10.66.171.40').value
+        ip = self.declare_parameter('ip', '192.168.1.11').value
         self._lock   = threading.Lock()
         try:
             self._socket = self.connect(ip)
