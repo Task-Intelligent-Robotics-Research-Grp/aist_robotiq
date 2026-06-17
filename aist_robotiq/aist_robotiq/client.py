@@ -248,6 +248,10 @@ class RobotiqGripper(SimpleActionClient):
             result.position = self._gap(result.position)
         return status, result
 
+    def grasped(self, *, timeout_sec: Optional[float]=None):
+        _, result = self.wait(timeout_sec=timeout_sec)
+        return result.stalled
+
     def _get_controller_parameters(self) -> None:
         timeout_sec = 10.0
         values = self._param_clnt.get_parameters_sync(['min_gap', 'max_gap',
