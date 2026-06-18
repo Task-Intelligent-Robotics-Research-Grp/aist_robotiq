@@ -98,7 +98,7 @@ class RobotiqGripper(SimpleActionClient):
     def type(self) -> str:
         """ Name of the gripper's type.
         """
-        if not self._min_gap:
+        if self._min_gap is None:
             self._get_controller_parameters()
         return 'two_finger' if len(self._min_gap) == 1 else 'three_finger'
 
@@ -118,8 +118,9 @@ class RobotiqGripper(SimpleActionClient):
     def parameters(self) -> dict:
         """ Dictionary of gripper parameters.
         """
-        if 'grasp_position' not in self._local_params:
+        if self._min_gap is None:
             self._get_controller_parameters()
+        if 'grasp_position' not in self._local_params:
             self._local_params['grasp_position']   = self._min_gap[0]
             self._local_params['release_position'] = self._max_gap[0]
 
@@ -127,6 +128,8 @@ class RobotiqGripper(SimpleActionClient):
         values = self._param_clnt \
                      .get_parameters_sync(RobotiqGripper._RemoteParams,
                                           timeout_sec=timeout_sec)
+        if len(values) != len(RobotiqGripper._RemoteParams):
+            values = (0.085, 0, False, False)  # fallback to robotiq_85
         remote_params = dict(zip(RobotiqGripper._RemoteParams, values))
         return self._local_params | remote_params
 
@@ -217,7 +220,7 @@ class RobotiqGripper(SimpleActionClient):
             A tuple of the goal status and the movement result of
             `control_msgs.action.GripperCommand.Result` type
         """
-        if not self._min_gap:
+        if self._min_gap is not None:
             self._get_controller_parameters()
         return self.send_goal(GripperCommand.Goal(
                                   command=GripperCommandMsg(
@@ -258,10 +261,16 @@ class RobotiqGripper(SimpleActionClient):
                                                        'min_position',
                                                        'max_position'],
                                                       timeout_sec=timeout_sec)
-        self._min_gap      = values[0]
-        self._max_gap      = values[1]
-        self._min_position = values[2]
-        self._max_position = values[3]
+        if len(values) == 4:
+            self._min_gap      = values[0]
+            self._max_gap      = values[1]
+            self._min_position = values[2]
+            self._max_position = values[3]
+        else:  # fallback to robotiq_85 parameters
+            self._min_gap      = [0.000]
+            self._max_gap      = [0.085]
+            self._min_position = [0.81]
+            self._max_position = [0.00]
 
     def _position(self, gap: float) -> float:
         idx = self._idx()
