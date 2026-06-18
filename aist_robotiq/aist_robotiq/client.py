@@ -69,7 +69,7 @@ class RobotiqGripper(SimpleActionClient):
 
         # Create action client for gripper command.
         self._cbg = MutuallyExclusiveCallbackGroup()
-        super().__init__(node, GripperCommand, controller_ns + '/command',
+        super().__init__(node, GripperCommand, controller_ns + '/gripper_cmd',
                          callback_group=self._cbg)
 
         # Create parameter client for setting/getting controller parameters.
@@ -302,7 +302,7 @@ class RobotiqSuction(SimpleActionClient):
         self._name = name
         self._cbg  = MutuallyExclusiveCallbackGroup()
         super().__init__(node, SuctionCommand,
-                         name + '_controller/command',
+                         name + '_controller/gripper_cmd',
                          callback_group=self._cbg)
         self.wait_for_server()
 

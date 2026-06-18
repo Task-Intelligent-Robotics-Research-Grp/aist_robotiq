@@ -245,7 +245,7 @@ SuctionController::SuctionController(const rclcpp::NodeOptions& options)
 
      _goal_pr{0, 0},
      _suction_command_srv(rclcpp_action::create_server<suction_command_t>(
-                              this, "~/command",
+                              this, "~/gripper_cmd",
                               std::bind(&SuctionController::goal_cb, this,
                                         std::placeholders::_1,
                                         std::placeholders::_2),

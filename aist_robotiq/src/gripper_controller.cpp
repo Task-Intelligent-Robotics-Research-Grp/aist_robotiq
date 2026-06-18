@@ -510,7 +510,7 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
      _gripper_command_cbg(create_callback_group(
                              rclcpp::CallbackGroupType::MutuallyExclusive)),
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
-                              this, "~/command",
+                              this, "~/gripper_cmd",
                               std::bind(&GripperController::goal_cb,
                                         this,
                                         std::placeholders::_1,
