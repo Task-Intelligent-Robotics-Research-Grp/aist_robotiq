@@ -68,9 +68,8 @@ class RobotiqGripper(SimpleActionClient):
         controller_ns = name + '_controller'
 
         # Create action client for gripper command.
-        self._cbg = MutuallyExclusiveCallbackGroup()
         super().__init__(node, GripperCommand, controller_ns + '/gripper_cmd',
-                         callback_group=self._cbg)
+                         callback_group=MutuallyExclusiveCallbackGroup())
 
         # Create parameter client for setting/getting controller parameters.
         self._param_clnt = ParameterClient(node, controller_ns)
@@ -309,10 +308,9 @@ class RobotiqSuction(SimpleActionClient):
             Otherwise, operates in test mode
         """
         self._name = name
-        self._cbg  = MutuallyExclusiveCallbackGroup()
         super().__init__(node, SuctionCommand,
                          name + '_controller/gripper_cmd',
-                         callback_group=self._cbg)
+                         callback_group=MutuallyExclusiveCallbackGroup())
         self.wait_for_server()
 
         self._parameters = {'advanced_mode':      advanced_mode,
