@@ -1,9 +1,9 @@
 ![GitHub Release](https://img.shields.io/github/v/release/Task-Intelligent-Robotics-Research-Grp/aist_robotiq)
 ![GitHub License](https://img.shields.io/github/license/Task-Intelligent-Robotics-Research-Grp/aist_robotiq)
 
-| ROS 2 Distribution | Jazzy                                                                                                                                                                    |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Build Status       | [![jazzy-build](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml/badge.svg)](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml) |
+| ROS 2 Distribution | Jazzy                                                                                                                                                                    | Lirical                                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Build Status       | [![jazzy-build](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml/badge.svg)](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/jazzy-build.yaml) | [![lyrical-build](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/lyrical-build.yaml/badge.svg)](https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq/actions/workflows/lyrical-build.yaml) |
 
 aist_robotiq
 ==================================================
