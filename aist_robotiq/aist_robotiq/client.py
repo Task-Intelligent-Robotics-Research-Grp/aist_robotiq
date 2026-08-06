@@ -302,10 +302,16 @@ class RobotiqSuction(SimpleActionClient):
                  grasp_timeout_sec:  float=0.0):
         """
         Args:
-          node: The ROS node to add the suction tool client to.
+          node: The ROS node to add the suction gripper client to.
           name: Name of the gripper.
           advanced_mode: If `True`, operates in advanced mode.
-            Otherwise, operates in test mode
+            Otherwise, operates in test mode.
+          grasp_pressure: Maximum pressure value applied when grasping.
+          detection_pressure: Minimum pressure value for detecting object.
+          release_pressure: Maximum pressure value applied when releasing.
+          grasp_timeout_sec: Timeout time waiting for success of grasping
+            or releasing command issued asynchronously, that is, zero
+            `timeout_sec` value is specified.
         """
         self._name = name
         super().__init__(node, SuctionCommand,
