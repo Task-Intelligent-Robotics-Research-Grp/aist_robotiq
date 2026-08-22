@@ -55,23 +55,3 @@ jobs:
         source /opt/ros/${{ inputs.ros_distro }}/setup.bash
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build documents of aist_robotiq
-      run: |
-        cd ${WS}/src/aist_robotiq
-        doxygen
-
-    - name: Build documents of aist_robotiq_msgs
-      run: |
-        cd ${WS}/src/aist_robotiq/docs
-        rosdoc2 build --package-path ../aist_robotiq_msgs
-        mv ./docs_output/aist_robotiq_msgs ./html
-
-    - name: Upload artifact of aist_robotiq
-      uses: actions/upload-pages-artifact@v4
-      with:
-        path: ./aist_robotiq/docs/html
-
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v5
