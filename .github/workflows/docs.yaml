@@ -1,0 +1,57 @@
+name: docs
+on: push
+
+jobs:
+  ros_build:
+    runs-on: ubuntu-24.04
+    env:
+      WS:  /home/runner/work/ros2_docs_ws
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: aist_robotiq
+
+    - name: Setup ROS
+      uses: ros-tooling/setup-ros@v0.7
+      with:
+        required-ros-distributions: jazzy
+
+    - name: Apt update and upgrade
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    - name: Install dependencies
+      run: |
+        sudo apt install python3-rosdoc2 python3-doxypypy
+
+    - name: Init workspace
+      run: |
+        mkdir ${WS}
+        ln -s ${GITHUB_WORKSPACE} ${WS}/src
+
+    - name: Build documents of aist_robotiq
+      run: |
+        cd ${WS}/src/aist_robotiq
+        doxygen
+
+    - name: Build documents of aist_robotiq_msgs
+      run: |
+        cd ${WS}/src/aist_robotiq/docs
+        rosdoc2 build --package-path ../aist_robotiq_msgs
+        mv ./docs_output/aist_robotiq_msgs ./html
+
+    - name: Upload artifact of aist_robotiq
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ./aist_robotiq/docs/html
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v5
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
