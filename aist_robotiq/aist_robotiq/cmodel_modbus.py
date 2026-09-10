@@ -32,12 +32,12 @@
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
 import threading
-from aist_robotiq.cmodel_base import CModelBase
-from aist_robotiq_msgs.msg    import CModelStatus, CModelCommand
-from pymodbus.exceptions      import ModbusIOException
-from pymodbus.client          import ModbusTcpClient, ModbusSerialClient
-from pymodbus.payload         import BinaryPayloadBuilder, BinaryPayloadDecoder
-from pymodbus.constants       import Endian
+from .cmodel_base          import CModelBase
+from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
+from pymodbus.exceptions   import ModbusIOException
+from pymodbus.client       import ModbusTcpClient, ModbusSerialClient
+from pymodbus.payload      import BinaryPayloadBuilder, BinaryPayloadDecoder
+from pymodbus.constants    import Endian
 
 #************************************************************************
 #  class CModelModbusBase                                               *

@@ -32,17 +32,17 @@
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
 import threading, copy
-from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
-from action_msgs.msg              import GoalStatus
-from control_msgs.action          import GripperCommand
-from control_msgs.msg             import GripperCommand as GripperCommandMsg
-from aist_robotiq_msgs.action     import SuctionCommand
-from aist_robotiq_msgs.msg        import SuctionCommand as SuctionCommandMsg
-from task_wrappers.action_client  import SimpleActionClient
-from ddynamic_reconfigure2.client import ParameterClient
+from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
+from action_msgs.msg          import GoalStatus
+from control_msgs.action      import GripperCommand
+from control_msgs.msg         import GripperCommand as GripperCommandMsg
+from aist_robotiq_msgs.action import SuctionCommand
+from aist_robotiq_msgs.msg    import SuctionCommand as SuctionCommandMsg
+from task_wrappers            import SimpleActionClient
+from ddynamic_reconfigure2    import ParameterClient
 
-from rclpy.node                   import Node
-from typing                       import Optional
+from rclpy.node               import Node
+from typing                   import Optional
 
 #************************************************************************
 #  class RobotiqGripper                                                 *

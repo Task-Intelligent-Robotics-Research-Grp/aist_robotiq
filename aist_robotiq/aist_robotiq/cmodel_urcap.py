@@ -36,8 +36,8 @@
 #  Modified by T.Ueshiba
 #
 import socket, threading
-from aist_robotiq.cmodel_base import CModelBase
-from aist_robotiq_msgs.msg    import CModelStatus
+from aist_robotiq_msgs.msg import CModelStatus
+from .cmodel_base          import CModelBase
 
 #************************************************************************
 #  class CModelURCap                                                    *
