@@ -34,8 +34,8 @@
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
 import rclpy, sys, threading
-from rclpy.node          import Node
-from aist_robotiq.client import RobotiqGripper, RobotiqSuction
+from rclpy.node   import Node
+from aist_robotiq import RobotiqGripper, RobotiqSuction
 
 #************************************************************************
 #  class TestDualGripperClient                                          *
