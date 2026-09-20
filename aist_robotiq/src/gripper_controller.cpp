@@ -225,11 +225,11 @@ class GripperController : public rclcpp::Node
                                              position_per_tick()).cast<int>()
                                             + _min_pos,
                                             _max_pos, _min_pos);
-                    const auto  vel = clamp(((velocity - _min_velocity) /
-                                             velocity_per_tick()).cast<int>(),
+                    const auto  vel = clamp((velocity / velocity_per_tick())
+                                            .cast<int>(),
                                             array4i{0}, array4i{255});
-                    const auto  eff = clamp(((effort - _min_effort) /
-                                             effort_per_tick()).cast<int>(),
+                    const auto  eff = clamp((effort / effort_per_tick())
+                                            .cast<int>(),
                                             array4i{0}, array4i{255});
                     send_raw_move_command(pos, vel, eff);
                     return pos;
@@ -291,8 +291,7 @@ class GripperController : public rclcpp::Node
                 }
     array4d     actual_effort(const cmodel_status_cp& status) const
                 {
-                    return eff(status).cast<double>() * effort_per_tick()
-                         + _min_effort;
+                    return eff(status).cast<double>() * effort_per_tick();
                 }
     static array4i
                 pos(const cmodel_status_cp& status)
@@ -372,11 +371,11 @@ class GripperController : public rclcpp::Node
                 }
     array4d     velocity_per_tick() const
                 {
-                    return (_max_velocity - _min_velocity) / 255.0;
+                    return array4d{1.0} / 255.0;
                 }
     array4d     effort_per_tick() const
                 {
-                    return (_max_effort - _min_effort) / 255.0;
+                    return array4d{1.0} / 255.0;
                 }
 
     static array4i
@@ -404,10 +403,6 @@ class GripperController : public rclcpp::Node
     const array4d                       _max_gap;
     const array4d                       _min_position;
     const array4d                       _max_position;
-    const array4d                       _min_velocity;
-    const array4d                       _max_velocity;
-    const array4d                       _min_effort;
-    const array4d                       _max_effort;
 
   // Variable parameters
     double                              _velocity;
@@ -462,20 +457,8 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
      _max_position(vector_to_array4d(
                        ddynamic_reconfigure2::declare_read_only_parameter(
                            this, "max_position", vector_t{0.00}))),
-     _min_velocity(vector_to_array4d(
-                       ddynamic_reconfigure2::declare_read_only_parameter(
-                           this, "min_velocity", vector_t{0.020}))),
-     _max_velocity(vector_to_array4d(
-                       ddynamic_reconfigure2::declare_read_only_parameter(
-                           this, "max_velocity", vector_t{0.150}))),
-     _min_effort(vector_to_array4d(
-                     ddynamic_reconfigure2::declare_read_only_parameter(
-                         this, "min_effort", vector_t{0.0}))),
-     _max_effort(vector_to_array4d(
-                     ddynamic_reconfigure2::declare_read_only_parameter(
-                         this, "max_effort", vector_t{235.0}))),
 
-     _velocity(0.5*(_min_velocity[0] + _max_velocity[0])),
+     _velocity(0.5),
      _mode(BASIC),
      _individual_control_fingers(false),
      _individual_control_scissor(false),
@@ -528,7 +511,7 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
 
   // Varibale parameters
     _ddr.registerVariable<double>("velocity", &_velocity, "finger velocity",
-                                  {_min_velocity[0], _max_velocity[0]});
+                                  {0.0, 1.0});
     _ddr.registerEnumVariable<int>("mode", BASIC,
                                    std::bind(&GripperController::set_mode,
                                              this, std::placeholders::_1),

@@ -61,7 +61,6 @@ class RobotiqGripper(SimpleActionClient):
         Args:
           node: The ROS node to add the suction tool client to.
           name: Name of the suction tool
-          max_effort: Maximum effort to be applied when grasping.
         """
         self._node    = node
         self._name    = name
